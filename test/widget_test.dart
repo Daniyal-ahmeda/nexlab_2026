@@ -1,30 +1,51 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:nexlab_2026/main.dart';
+import 'package:provider/provider.dart';
+import 'package:nexlab_2026/core/providers/app_state.dart';
+import 'package:nexlab_2026/features/auth/data/datasources.dart';
+import 'package:nexlab_2026/features/auth/data/repositories.dart';
+import 'package:nexlab_2026/features/booking/data/datasources.dart';
+import 'package:nexlab_2026/features/booking/data/repositories.dart';
+import 'package:nexlab_2026/features/health/data/datasources.dart';
+import 'package:nexlab_2026/features/health/data/repositories.dart';
+import 'package:nexlab_2026/core/network/api_client.dart';
+import 'package:nexlab_2026/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App starts up and shows login screen', (WidgetTester tester) async {
+    final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api');
+    final authRepository = AuthRepositoryImpl(
+      remoteDataSource: AuthRemoteDataSourceImpl(apiClient),
+      mockDataSource: AuthMockDataSourceImpl(),
+      useRemote: false,
+    );
+    final bookingRepository = BookingRepositoryImpl(
+      remoteDataSource: BookingRemoteDataSourceImpl(apiClient),
+      mockDataSource: BookingMockDataSourceImpl(),
+      useRemote: false,
+    );
+    final healthRepository = HealthRepositoryImpl(
+      remoteDataSource: HealthRemoteDataSourceImpl(apiClient),
+      mockDataSource: HealthMockDataSourceImpl(),
+      useRemote: false,
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (context) => AppState(
+          authRepository: authRepository,
+          bookingRepository: bookingRepository,
+          healthRepository: healthRepository,
+        ),
+        child: const MyApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Let the initial loading finish
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify login page elements exist
+    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
   });
 }
+
