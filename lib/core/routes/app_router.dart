@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/booking_confirmation_screen.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/select_date_time_screen.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/select_lab_screen.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/test_details_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/result_details_screen.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/main_navigation_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/booking_confirmation/booking_confirmation_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/select_date_time/select_date_time_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/select_lab/select_lab_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/test_details/test_details_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/result_details/result_details_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/main_navigation/main_navigation_screen.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/auth/presentation/pages/login_screen.dart';
-import 'package:nexlab_2026/features/auth/presentation/pages/register_screen.dart';
+import 'package:nexlab_2026/features/auth/presentation/pages/login/login_screen.dart';
+import 'package:nexlab_2026/features/auth/presentation/pages/register/register_screen.dart';
 import 'package:nexlab_2026/shared/widgets/nexlab_logo.dart';
 import 'app_routes.dart';
 

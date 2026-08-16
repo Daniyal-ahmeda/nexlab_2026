@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'main_navigation_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/main_navigation/main_navigation_screen.dart';
 
 class BookingConfirmationScreen extends StatelessWidget {
   final Booking booking;
@@ -339,3 +339,4 @@ class BookingConfirmationScreen extends StatelessWidget {
     );
   }
 }
+

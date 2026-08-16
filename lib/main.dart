@@ -8,21 +8,29 @@ import 'features/booking/data/datasources.dart';
 import 'features/booking/data/repositories.dart';
 import 'features/health/data/datasources.dart';
 import 'features/health/data/repositories.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'app.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase (reads google-services.json on Android)
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization warning: $e');
+  }
 
   // Clean Architecture Bootstrapping (Feature-First)
   final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api');
 
-  // Auth feature dependencies
-  final authRemote = AuthRemoteDataSourceImpl(apiClient);
+  // Auth feature dependencies (Powered by Firebase Auth)
+  final authFirebase = AuthFirebaseDataSourceImpl();
   final authMock = AuthMockDataSourceImpl();
   final authRepository = AuthRepositoryImpl(
-    remoteDataSource: authRemote,
+    remoteDataSource: authFirebase,
     mockDataSource: authMock,
-    useRemote: false, // Set to true to connect to live Laravel API
+    useRemote: true, // Uses Firebase Auth for login & register
   );
 
   // Booking feature dependencies

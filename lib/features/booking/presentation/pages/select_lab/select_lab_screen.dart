@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/select_date_time_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/select_date_time/select_date_time_screen.dart';
 
 class SelectLabScreen extends StatefulWidget {
   const SelectLabScreen({super.key});
@@ -396,3 +396,4 @@ class _SelectLabScreenState extends State<SelectLabScreen> {
     );
   }
 }
+

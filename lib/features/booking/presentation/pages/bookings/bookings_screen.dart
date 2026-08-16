@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/results_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/results/results_screen.dart';
 
 class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
@@ -550,3 +550,4 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 }
+

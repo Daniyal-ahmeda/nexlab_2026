@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/family_members_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/payment_methods_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/settings_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/results_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/result_details_screen.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/main_navigation_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/family_members/family_members_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/payment_methods/payment_methods_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/settings/settings_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/results/results_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/result_details/result_details_screen.dart';
 import 'package:nexlab_2026/core/routes/app_routes.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/main_navigation/main_navigation_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -533,3 +533,5 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+
+

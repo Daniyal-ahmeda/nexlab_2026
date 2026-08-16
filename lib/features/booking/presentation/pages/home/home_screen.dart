@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'test_details_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/family_members_screen.dart';
-import 'package:nexlab_2026/features/health/presentation/pages/upload_prescription_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/test_details/test_details_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/family_members/family_members_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/upload_prescription/upload_prescription_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -894,3 +894,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

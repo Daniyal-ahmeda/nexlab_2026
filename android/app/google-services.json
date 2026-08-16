@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "903616256229",
+    "project_id": "nexlab-2026",
+    "storage_bucket": "nexlab-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903616256229:android:64fb45d79111d31f869c0c",
+        "android_client_info": {
+          "package_name": "com.example.nexlab_2026"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYPwhUmuP23vznqGrgtzhfE6sOMomISgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

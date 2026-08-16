@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/booking_confirmation_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/booking_confirmation/booking_confirmation_screen.dart';
 
 class SelectDateTimeScreen extends StatefulWidget {
   const SelectDateTimeScreen({super.key});
@@ -410,3 +410,4 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
     );
   }
 }
+

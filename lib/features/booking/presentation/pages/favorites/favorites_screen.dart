@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'test_details_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/test_details/test_details_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -456,3 +456,4 @@ class _FavoriteCardState extends State<_FavoriteCard>
     );
   }
 }
+

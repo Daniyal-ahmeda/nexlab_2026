@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/features/booking/presentation/pages/select_lab_screen.dart';
+import 'package:nexlab_2026/features/booking/presentation/pages/select_lab/select_lab_screen.dart';
 
 class TestDetailsScreen extends StatelessWidget {
   final DiagnosticTest test;
@@ -445,3 +445,4 @@ class TestDetailsScreen extends StatelessWidget {
     );
   }
 }
+

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'result_details_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/result_details/result_details_screen.dart';
 
 class ResultsScreen extends StatelessWidget {
   const ResultsScreen({super.key});
@@ -282,3 +282,4 @@ class ResultsScreen extends StatelessWidget {
     );
   }
 }
+
