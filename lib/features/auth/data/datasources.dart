@@ -23,14 +23,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient apiClient;
   AuthRemoteDataSourceImpl(this.apiClient);
 
+  Map<String, dynamic> _extractData(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data') && response['data'] is Map<String, dynamic>) {
+        return response['data'] as Map<String, dynamic>;
+      }
+      return response;
+    }
+    return {};
+  }
+
   @override
   Future<UserModel> login(String email, String password) async {
     final response = await apiClient.post('/login', body: {
       'email': email,
       'password': password,
     });
-    final user = UserModel.fromJson(response['user']);
-    apiClient.setToken(response['token']);
+    final data = _extractData(response);
+    final userJson = data.containsKey('user') ? data['user'] : data;
+    final user = UserModel.fromJson(userJson as Map<String, dynamic>);
+    if (data.containsKey('token') && data['token'] is String) {
+      apiClient.setToken(data['token'] as String);
+    }
     return user;
   }
 
@@ -53,14 +67,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'gender': gender,
       'blood_group': bloodGroup,
     });
-    final user = UserModel.fromJson(response['user']);
-    apiClient.setToken(response['token']);
+    final data = _extractData(response);
+    final userJson = data.containsKey('user') ? data['user'] : data;
+    final user = UserModel.fromJson(userJson as Map<String, dynamic>);
+    if (data.containsKey('token') && data['token'] is String) {
+      apiClient.setToken(data['token'] as String);
+    }
     return user;
   }
 
   @override
   Future<void> logout() async {
-    await apiClient.post('/logout');
+    try {
+      await apiClient.post('/logout');
+    } catch (_) {}
     apiClient.clearToken();
   }
 
@@ -68,9 +88,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser() async {
     try {
       final response = await apiClient.get('/me');
-      return UserModel.fromJson(response);
-    } catch (_) {
-      return null;
+      if (response == null) throw const AuthException('No active user session');
+      final data = _extractData(response);
+      final userJson = data.containsKey('user') ? data['user'] : data;
+      return UserModel.fromJson(userJson as Map<String, dynamic>);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(e.toString());
     }
   }
 }
@@ -145,7 +170,13 @@ class AuthMockDataSourceImpl implements AuthMockDataSource {
 }
 
 class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
-  final _auth = FirebaseAuth.instance;
+  FirebaseAuth get _auth {
+    try {
+      return FirebaseAuth.instance;
+    } catch (e) {
+      throw AuthException('no-app: Firebase is not initialized: $e');
+    }
+  }
 
   @override
   Future<UserModel> login(String email, String password) async {
@@ -169,6 +200,8 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
       );
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Authentication error');
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw AuthException(e.toString());
     }
@@ -205,6 +238,8 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
       );
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.message ?? 'Registration error');
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw AuthException(e.toString());
     }
@@ -212,22 +247,28 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> logout() async {
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (_) {}
   }
 
   @override
   Future<UserModel?> getCurrentUser() async {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-    return UserModel(
-      id: user.uid,
-      name: user.displayName ?? user.email?.split('@')[0] ?? 'User',
-      email: user.email ?? '',
-      relationship: 'Self',
-      age: 30,
-      gender: 'Male',
-      bloodGroup: 'O+',
-    );
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
+      return UserModel(
+        id: user.uid,
+        name: user.displayName ?? user.email?.split('@')[0] ?? 'User',
+        email: user.email ?? '',
+        relationship: 'Self',
+        age: 30,
+        gender: 'Male',
+        bloodGroup: 'O+',
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }
 

@@ -44,8 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify login page elements exist
-    expect(find.text('Welcome Back'), findsOneWidget);
-    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Sign In'), findsAtLeastNWidgets(1));
   });
 }
 

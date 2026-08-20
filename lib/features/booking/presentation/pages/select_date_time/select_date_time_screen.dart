@@ -15,6 +15,7 @@ class SelectDateTimeScreen extends StatefulWidget {
 class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
+  bool _isSubmitting = false;
 
   late List<DateTime> _dates;
 
@@ -50,6 +51,62 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
     _selectedDate = _dates[0];
   }
 
+  Set<String> _getUnavailableSlots(DateTime date, LabOption lab, AppState state) {
+    final unavailable = <String>{};
+
+    // 1. Check existing bookings in AppState for this lab and date
+    for (final b in state.bookings) {
+      if (b.lab.id == lab.id &&
+          b.date.year == date.year &&
+          b.date.month == date.month &&
+          b.date.day == date.day &&
+          b.status != BookingStatus.cancelled) {
+        unavailable.add(b.timeSlot);
+      }
+    }
+
+    // 2. Realistic lab slot reservation rules based on date & lab ID
+    final daySeed = date.day + date.month * 31 + lab.id.hashCode;
+    if (daySeed % 2 == 0) {
+      unavailable.add('08:00 AM');
+      unavailable.add('09:30 AM');
+      unavailable.add('03:00 PM');
+    }
+    if (daySeed % 3 == 0) {
+      unavailable.add('07:30 AM');
+      unavailable.add('10:30 AM');
+      unavailable.add('04:30 PM');
+    }
+    if (daySeed % 5 == 0) {
+      unavailable.add('11:00 AM');
+      unavailable.add('02:00 PM');
+      unavailable.add('05:00 PM');
+    }
+
+    // 3. Disable past time slots if selected date is TODAY
+    final now = DateTime.now();
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      for (final slot in [..._morningSlots, ..._afternoonSlots]) {
+        final slotHour = _parseSlotHour(slot);
+        if (slotHour <= now.hour) {
+          unavailable.add(slot);
+        }
+      }
+    }
+
+    return unavailable;
+  }
+
+  int _parseSlotHour(String slot) {
+    final parts = slot.split(' ');
+    final timeParts = parts[0].split(':');
+    int hour = int.parse(timeParts[0]);
+    final isPm = parts[1] == 'PM';
+    if (isPm && hour < 12) hour += 12;
+    if (!isPm && hour == 12) hour = 0;
+    return hour;
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
@@ -63,6 +120,10 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
         body: Center(child: Text('Required booking context missing')),
       );
     }
+
+    final unavailableSlots = _selectedDate != null
+        ? _getUnavailableSlots(_selectedDate!, lab, state)
+        : <String>{};
 
     return Scaffold(
       appBar: AppBar(
@@ -169,7 +230,7 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              _buildDatesHorizontalList(isDark),
+              _buildDatesHorizontalList(isDark, unavailableSlots),
               const SizedBox(height: 24),
 
               // Time Header
@@ -202,7 +263,7 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              _buildTimeSlotGrid(_morningSlots, isDark),
+              _buildTimeSlotGrid(_morningSlots, unavailableSlots, isDark),
               const SizedBox(height: 20),
 
               // Afternoon Section
@@ -222,7 +283,7 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              _buildTimeSlotGrid(_afternoonSlots, isDark),
+              _buildTimeSlotGrid(_afternoonSlots, unavailableSlots, isDark),
               const SizedBox(height: 30),
             ],
           ),
@@ -242,22 +303,38 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
           child: SizedBox(
             height: 48,
             child: ElevatedButton(
-              onPressed: (_selectedDate == null || _selectedTimeSlot == null)
+              onPressed: (_selectedDate == null || _selectedTimeSlot == null || _isSubmitting)
                   ? null
                   : () async {
-                      state.selectedDate = _selectedDate;
-                      state.selectedTimeSlot = _selectedTimeSlot;
+                      setState(() => _isSubmitting = true);
+                      try {
+                        state.selectedDate = _selectedDate;
+                        state.selectedTimeSlot = _selectedTimeSlot;
 
-                      final booking = await state.confirmBooking();
+                        final booking = await state.confirmBooking();
 
-                      if (!context.mounted) return;
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BookingConfirmationScreen(booking: booking),
-                        ),
-                        (route) => route.isFirst,
-                      );
+                        if (!context.mounted) return;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookingConfirmationScreen(booking: booking),
+                          ),
+                          (route) => route.isFirst,
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Booking failed: ${e.toString()}'),
+                            backgroundColor: AppTheme.coralRed,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSubmitting = false);
+                        }
+                      }
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryBlue,
@@ -269,14 +346,23 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'Confirm & Proceed to Receipt',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Outfit',
-                ),
-              ),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Confirm & Proceed to Receipt',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Outfit',
+                      ),
+                    ),
             ),
           ),
         ),
@@ -284,7 +370,7 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
     );
   }
 
-  Widget _buildDatesHorizontalList(bool isDark) {
+  Widget _buildDatesHorizontalList(bool isDark, Set<String> unavailableSlots) {
     return SizedBox(
       height: 72,
       child: ListView.separated(
@@ -306,6 +392,9 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
             onTap: () {
               setState(() {
                 _selectedDate = date;
+                if (_selectedTimeSlot != null && unavailableSlots.contains(_selectedTimeSlot)) {
+                  _selectedTimeSlot = null;
+                }
               });
             },
             child: AnimatedContainer(
@@ -367,42 +456,71 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
     );
   }
 
-  Widget _buildTimeSlotGrid(List<String> slots, bool isDark) {
+  Widget _buildTimeSlotGrid(List<String> slots, Set<String> unavailableSlots, bool isDark) {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: slots.map((slot) {
+        final isUnavailable = unavailableSlots.contains(slot);
         final isSelected = _selectedTimeSlot == slot;
+
+        Color bgColor;
+        Color borderColor;
+        Color textColor;
+
+        if (isUnavailable) {
+          bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+          borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+          textColor = isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8);
+        } else if (isSelected) {
+          bgColor = AppTheme.primaryBlue;
+          borderColor = AppTheme.primaryBlue;
+          textColor = Colors.white;
+        } else {
+          bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+          borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+          textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+        }
+
         return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedTimeSlot = slot;
-            });
-          },
+          onTap: isUnavailable
+              ? null
+              : () {
+                  setState(() {
+                    _selectedTimeSlot = slot;
+                  });
+                },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.primaryBlue
-                  : (isDark ? const Color(0xFF1E293B) : Colors.white),
+              color: bgColor,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isSelected
-                    ? AppTheme.primaryBlue
-                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
-              ),
+              border: Border.all(color: borderColor),
             ),
-            child: Text(
-              slot,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontFamily: 'Outfit',
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  slot,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontFamily: 'Outfit',
+                    color: textColor,
+                    decoration: isUnavailable ? TextDecoration.lineThrough : null,
+                    decorationColor: textColor,
+                  ),
+                ),
+                if (isUnavailable) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.block,
+                    size: 11,
+                    color: textColor,
+                  ),
+                ],
+              ],
             ),
           ),
         );
@@ -410,4 +528,3 @@ class _SelectDateTimeScreenState extends State<SelectDateTimeScreen> {
     );
   }
 }
-

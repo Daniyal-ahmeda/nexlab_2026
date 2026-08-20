@@ -221,12 +221,14 @@ class _SelectLabScreenState extends State<SelectLabScreen> {
                               children: const [
                                 Icon(Icons.check_circle_outline, color: AppTheme.emeraldGreen, size: 14),
                                 SizedBox(width: 5),
-                                Text(
-                                  'Licensed Home Sample Collection Available',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.emeraldGreen,
+                                Expanded(
+                                  child: Text(
+                                    'Licensed Home Sample Collection Available',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.emeraldGreen,
+                                    ),
                                   ),
                                 ),
                               ],

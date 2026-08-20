@@ -1,4 +1,3 @@
-import '../../../core/errors/exceptions.dart';
 import '../../../core/errors/failures.dart';
 import '../domain/entities.dart';
 import '../domain/repositories.dart';
@@ -20,14 +19,6 @@ class BookingRepositoryImpl implements BookingRepository {
     if (useRemote) {
       try {
         return await remoteCall();
-      } on NetworkException catch (e) {
-        throw NetworkFailure(e.message);
-      } on AuthException catch (e) {
-        throw AuthFailure(e.message);
-      } on ValidationException catch (e) {
-        throw ValidationFailure(message: e.message, errors: e.errors);
-      } on ServerException catch (e) {
-        throw ServerFailure(e.message);
       } catch (e) {
         throw ServerFailure(e.toString());
       }

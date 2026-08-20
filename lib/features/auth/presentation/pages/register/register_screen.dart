@@ -284,6 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     const SizedBox(height: 6),
                                     DropdownButtonFormField<String>(
                                       initialValue: _gender,
+                                      isExpanded: true,
                                       decoration: _inputDecoration(
                                         isDark: isDark,
                                         hintText: 'Gender',
@@ -312,6 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
                             initialValue: _bloodGroup,
+                            isExpanded: true,
                             decoration: _inputDecoration(
                               isDark: isDark,
                               hintText: 'Select Blood Type',
@@ -365,8 +367,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
 
                           // Back to login
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 "Already have an account? ",

@@ -140,17 +140,70 @@ class BookingModel extends Booking {
     PaymentStatus payVal = PaymentStatus.unpaid;
     if (json['payment_status'] == 'paid') payVal = PaymentStatus.paid;
 
+    DiagnosticTestModel testObj;
+    if (json.containsKey('test') && json['test'] is Map<String, dynamic>) {
+      testObj = DiagnosticTestModel.fromJson(json['test'] as Map<String, dynamic>);
+    } else {
+      final testId = json['diagnostic_test_id']?.toString() ?? json['test_id']?.toString() ?? 't9';
+      testObj = DiagnosticTestModel(
+        id: testId,
+        name: json['test_name']?.toString() ?? 'Diagnostic Test',
+        category: 'General',
+        subtitle: 'Lab Test',
+        description: 'Comprehensive Diagnostic Panel',
+        price: (json['total_amount'] as num?)?.toDouble() ?? 140.0,
+        sampleType: 'Blood',
+        reportsInHours: 24,
+        fastingRequired: false,
+        isPopular: true,
+        isPackage: false,
+        icon: Icons.science_outlined,
+      );
+    }
+
+    LabOptionModel labObj;
+    if (json.containsKey('lab') && json['lab'] is Map<String, dynamic>) {
+      labObj = LabOptionModel.fromJson(json['lab'] as Map<String, dynamic>);
+    } else {
+      final labId = json['partner_lab_id']?.toString() ?? json['lab_id']?.toString() ?? 'l1';
+      labObj = LabOptionModel(
+        id: labId,
+        name: json['lab_name']?.toString() ?? 'Tripoli Central Diagnostic Lab',
+        rating: 4.9,
+        reviewsCount: 312,
+        address: 'Tripoli, Libya',
+        hours: '07:00 AM - 08:00 PM',
+        phone: '+218 91 000 0000',
+        hasHomeCollection: true,
+        price: 0.0,
+      );
+    }
+
+    FamilyMemberModel patientObj;
+    if (json.containsKey('patient') && json['patient'] is Map<String, dynamic>) {
+      patientObj = FamilyMemberModel.fromJson(json['patient'] as Map<String, dynamic>);
+    } else {
+      patientObj = FamilyMemberModel(
+        id: json['patient_id']?.toString() ?? 'f_self',
+        name: json['patient_name']?.toString() ?? 'Dani',
+        relationship: 'Self',
+        age: (json['patient_age'] as int?) ?? 25,
+        gender: json['patient_gender']?.toString() ?? 'Male',
+        bloodGroup: json['patient_blood_group']?.toString() ?? 'O+',
+      );
+    }
+
     return BookingModel(
-      id: json['id'].toString(),
-      test: DiagnosticTestModel.fromJson(json['test']),
-      lab: LabOptionModel.fromJson(json['lab']),
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
-      timeSlot: json['time_slot'] ?? '',
-      patient: FamilyMemberModel.fromJson(json['patient']),
+      id: json['id']?.toString() ?? 'NXL${DateTime.now().millisecondsSinceEpoch}',
+      test: testObj,
+      lab: labObj,
+      date: json['date'] != null ? DateTime.parse(json['date'].toString()) : DateTime.now(),
+      timeSlot: json['time_slot']?.toString() ?? '09:00 AM',
+      patient: patientObj,
       isHomeCollection: json['is_home_collection'] as bool? ?? false,
       status: statusVal,
       paymentStatus: payVal,
-      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? (json['price'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -164,8 +217,11 @@ class BookingModel extends Booking {
 
     return {
       'id': id,
-      'test_id': test.id,
-      'lab_id': lab.id,
+      'diagnostic_test_id': test.id.toString(),
+      'partner_lab_id': lab.id.toString(),
+      'patient_name': patient.name.isNotEmpty ? patient.name : 'izwa',
+      'test_id': test.id.toString(),
+      'lab_id': lab.id.toString(),
       'date': date.toIso8601String().substring(0, 10),
       'time_slot': timeSlot,
       'patient_id': patient.id,
@@ -173,9 +229,38 @@ class BookingModel extends Booking {
       'status': statusStr,
       'payment_status': payStr,
       'total_amount': totalAmount,
-      'test': (test as DiagnosticTestModel).toJson(),
-      'lab': (lab as LabOptionModel).toJson(),
-      'patient': (patient as FamilyMemberModel).toJson(),
+      'test': {
+        'id': test.id,
+        'name': test.name,
+        'category': test.category,
+        'subtitle': test.subtitle,
+        'description': test.description,
+        'price': test.price,
+        'sample_type': test.sampleType,
+        'reports_in_hours': test.reportsInHours,
+        'fasting_required': test.fastingRequired,
+        'is_popular': test.isPopular,
+        'is_package': test.isPackage,
+      },
+      'lab': {
+        'id': lab.id,
+        'name': lab.name,
+        'rating': lab.rating,
+        'reviews_count': lab.reviewsCount,
+        'address': lab.address,
+        'hours': lab.hours,
+        'phone': lab.phone,
+        'has_home_collection': lab.hasHomeCollection,
+        'price': lab.price,
+      },
+      'patient': {
+        'id': patient.id,
+        'name': patient.name,
+        'relationship': patient.relationship,
+        'age': patient.age,
+        'gender': patient.gender,
+        'blood_group': patient.bloodGroup,
+      },
     };
   }
 }

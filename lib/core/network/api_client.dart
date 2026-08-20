@@ -8,7 +8,7 @@ class ApiClient {
   String? _token;
 
   ApiClient({
-    this.baseUrl = 'http://localhost:8000/api',
+    this.baseUrl = 'http://192.168.0.109:8000/api',
     http.Client? httpClient,
   }) : client = httpClient ?? http.Client();
 
@@ -33,51 +33,59 @@ class ApiClient {
 
   Future<dynamic> get(String endpoint) async {
     try {
-      final response = await client.get(
-        Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
-      );
+      final response = await client
+          .get(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
       return _processResponse(response);
-    } on http.ClientException {
-      throw const NetworkException('Network connection failed');
+    } catch (e) {
+      throw NetworkException('Network connection failed: ${e.toString()}');
     }
   }
 
   Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
-      final response = await client.post(
-        Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
-        body: body != null ? json.encode(body) : null,
-      );
+      final response = await client
+          .post(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: _getHeaders(),
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(const Duration(seconds: 10));
       return _processResponse(response);
-    } on http.ClientException {
-      throw const NetworkException('Network connection failed');
+    } catch (e) {
+      throw NetworkException('Network connection failed: ${e.toString()}');
     }
   }
 
   Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
     try {
-      final response = await client.put(
-        Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
-        body: body != null ? json.encode(body) : null,
-      );
+      final response = await client
+          .put(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: _getHeaders(),
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(const Duration(seconds: 10));
       return _processResponse(response);
-    } on http.ClientException {
-      throw const NetworkException('Network connection failed');
+    } catch (e) {
+      throw NetworkException('Network connection failed: ${e.toString()}');
     }
   }
 
   Future<dynamic> delete(String endpoint) async {
     try {
-      final response = await client.delete(
-        Uri.parse('$baseUrl$endpoint'),
-        headers: _getHeaders(),
-      );
+      final response = await client
+          .delete(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
       return _processResponse(response);
-    } on http.ClientException {
-      throw const NetworkException('Network connection failed');
+    } catch (e) {
+      throw NetworkException('Network connection failed: ${e.toString()}');
     }
   }
 

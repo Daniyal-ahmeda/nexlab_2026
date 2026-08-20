@@ -118,12 +118,15 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 5),
-                                  Text(
-                                    'Active Account • Tripoli, Libya',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                  Expanded(
+                                    child: Text(
+                                      'Active Account • Tripoli, Libya',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

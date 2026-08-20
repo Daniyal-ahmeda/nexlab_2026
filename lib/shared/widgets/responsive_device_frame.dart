@@ -10,40 +10,52 @@ class ResponsiveDeviceFrame extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth > 600) {
-          // Large screen - show a premium phone frame wrapper
+          final targetWidth = 410.0;
+          final targetHeight = 860.0;
+          final availableHeight = constraints.maxHeight - 32.0;
+          final scaleFactor = (availableHeight > 0 && availableHeight < targetHeight)
+              ? (availableHeight / targetHeight).clamp(0.4, 1.0)
+              : 1.0;
+
           return Container(
             color: Theme.of(context).brightness == Brightness.dark
                 ? const Color(0xFF020617)
                 : const Color(0xFFE2E8F0),
             alignment: Alignment.center,
-            child: Container(
-              width: 410,
-              height: 860,
-              margin: const EdgeInsets.symmetric(vertical: 24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 15),
-                  )
-                ],
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF334155)
-                      : const Color(0xFF94A3B8),
-                  width: 12,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    size: const Size(410, 860),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Transform.scale(
+                scale: scaleFactor,
+                child: Container(
+                  width: targetWidth,
+                  height: targetHeight,
+                  margin: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(40),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 30,
+                        spreadRadius: 5,
+                        offset: const Offset(0, 15),
+                      )
+                    ],
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFF94A3B8),
+                      width: 12,
+                    ),
                   ),
-                  child: child,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        size: Size(targetWidth, targetHeight),
+                      ),
+                      child: child,
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/test_details/test_details_screen.dart';
@@ -66,7 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Service Category Grid (Upload, Offers, Family, Help)
                 _buildServiceGrid(context, isDark),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // Active / Upcoming Appointment Card
+                if (state.bookings.any((b) => b.status == BookingStatus.pending)) ...[
+                  _buildUpcomingBookingCard(
+                    context,
+                    state,
+                    state.bookings.firstWhere((b) => b.status == BookingStatus.pending),
+                    isDark,
+                  ),
+                ],
+                const SizedBox(height: 12),
 
                 // Diagnostic Category Header & Horizontal List
                 Text(
@@ -498,42 +510,54 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      child: Row(
-        children: tabs.map((tab) {
-          final isSelected = _selectedTab == tab['id'];
-          return GestureDetector(
-            onTap: () => setState(() => _selectedTab = tab['id'] as String),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
-                    width: 2,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: tabs.map((tab) {
+            final isSelected = _selectedTab == tab['id'];
+            return GestureDetector(
+              onTap: () => setState(() => _selectedTab = tab['id'] as String),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  tab['label'] as String,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? AppTheme.primaryBlue
+                        : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                    fontFamily: 'Outfit',
                   ),
                 ),
               ),
-              child: Text(
-                tab['label'] as String,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? AppTheme.primaryBlue
-                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-                  fontFamily: 'Outfit',
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 
   Widget _buildWinterSpecialCard(BuildContext context, AppState state, bool isDark) {
-    final winterSpecialTest = state.allTests.firstWhere((t) => t.id == 't9');
+    if (state.allTests.isEmpty) return const SizedBox.shrink();
+
+    final winterSpecialTest = state.allTests.firstWhere(
+      (t) => t.id == 't9',
+      orElse: () => state.allTests.firstWhere(
+        (t) => t.isPackage,
+        orElse: () => state.allTests.first,
+      ),
+    );
 
     return InkWell(
       onTap: () {
@@ -890,6 +914,118 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUpcomingBookingCard(BuildContext context, AppState state, Booking booking, bool isDark) {
+    final formattedDate = DateFormat('EEE, d MMM').format(booking.date);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+              : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'UPCOMING APPOINTMENT',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryBlue,
+                      letterSpacing: 0.8,
+                      fontFamily: 'Outfit',
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'CONFIRMED',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.green,
+                    letterSpacing: 0.5,
+                    fontFamily: 'Outfit',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            booking.test.name,
+            style: TextStyle(
+              fontSize: 15.5,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'Outfit',
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(
+                Icons.business_outlined,
+                size: 14,
+                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '${booking.lab.name} • $formattedDate at ${booking.timeSlot}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey.shade300 : const Color(0xFF334155),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

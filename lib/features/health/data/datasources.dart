@@ -30,23 +30,43 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
   final ApiClient apiClient;
   HealthRemoteDataSourceImpl(this.apiClient);
 
+  List<dynamic> _extractList(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data') && response['data'] is List) {
+        return response['data'] as List<dynamic>;
+      }
+    }
+    if (response is List) {
+      return response;
+    }
+    return [];
+  }
+
   @override
   Future<List<TestResultModel>> getResults() async {
-    final List<dynamic> response = await apiClient.get('/results');
-    return response.map((json) => TestResultModel.fromJson(json)).toList();
+    final response = await apiClient.get('/results');
+    final list = _extractList(response);
+    return list.map((json) => TestResultModel.fromJson(json)).toList();
   }
 
   @override
   Future<void> uploadPrescription(String filePath) async {
-    await apiClient.post('/prescriptions', body: {
-      'file_path': filePath,
-    });
+    try {
+      await apiClient.post('/prescriptions/upload', body: {
+        'file_path': filePath,
+      });
+    } catch (_) {
+      await apiClient.post('/prescriptions', body: {
+        'file_path': filePath,
+      });
+    }
   }
 
   @override
   Future<List<FamilyMemberModel>> getFamilyMembers() async {
-    final List<dynamic> response = await apiClient.get('/family-members');
-    return response.map((json) => FamilyMemberModel.fromJson(json)).toList();
+    final response = await apiClient.get('/family-members');
+    final list = _extractList(response);
+    return list.map((json) => FamilyMemberModel.fromJson(json)).toList();
   }
 
   @override
@@ -64,7 +84,8 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
       'gender': gender,
       'blood_group': bloodGroup,
     });
-    return FamilyMemberModel.fromJson(response);
+    final data = (response is Map<String, dynamic> && response.containsKey('data')) ? response['data'] : response;
+    return FamilyMemberModel.fromJson(data);
   }
 
   @override
@@ -74,8 +95,9 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
 
   @override
   Future<List<PaymentMethodModel>> getPaymentMethods() async {
-    final List<dynamic> response = await apiClient.get('/payment-methods');
-    return response.map((json) => PaymentMethodModel.fromJson(json)).toList();
+    final response = await apiClient.get('/payment-methods');
+    final list = _extractList(response);
+    return list.map((json) => PaymentMethodModel.fromJson(json)).toList();
   }
 
   @override
@@ -88,13 +110,19 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
       'type': type,
       'number': number,
       'expiry': expiry,
+      'is_default': true,
     });
-    return PaymentMethodModel.fromJson(response);
+    final data = (response is Map<String, dynamic> && response.containsKey('data')) ? response['data'] : response;
+    return PaymentMethodModel.fromJson(data);
   }
 
   @override
   Future<void> setPaymentMethodAsDefault(String id) async {
-    await apiClient.put('/payment-methods/$id/default');
+    try {
+      await apiClient.post('/payment-methods/$id/default');
+    } catch (_) {
+      await apiClient.put('/payment-methods/$id/default');
+    }
   }
 
   @override

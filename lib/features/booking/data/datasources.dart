@@ -15,33 +15,74 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   final ApiClient apiClient;
   BookingRemoteDataSourceImpl(this.apiClient);
 
+  List<dynamic> _extractList(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data') && response['data'] is List) {
+        return response['data'] as List<dynamic>;
+      }
+    }
+    if (response is List) {
+      return response;
+    }
+    return [];
+  }
+
   @override
   Future<List<DiagnosticTestModel>> getTests() async {
-    final List<dynamic> response = await apiClient.get('/tests');
-    return response.map((json) => DiagnosticTestModel.fromJson(json)).toList();
+    final response = await apiClient.get('/tests');
+    final list = _extractList(response);
+    return list.map((json) => DiagnosticTestModel.fromJson(json)).toList();
   }
 
   @override
   Future<List<LabOptionModel>> getLabs() async {
-    final List<dynamic> response = await apiClient.get('/labs');
-    return response.map((json) => LabOptionModel.fromJson(json)).toList();
+    final response = await apiClient.get('/labs');
+    final list = _extractList(response);
+    return list.map((json) => LabOptionModel.fromJson(json)).toList();
   }
 
   @override
   Future<List<BookingModel>> getBookings() async {
-    final List<dynamic> response = await apiClient.get('/bookings');
-    return response.map((json) => BookingModel.fromJson(json)).toList();
+    final response = await apiClient.get('/bookings');
+    final list = _extractList(response);
+    return list.map((json) => BookingModel.fromJson(json)).toList();
   }
 
   @override
   Future<BookingModel> createBooking(BookingModel booking) async {
     final response = await apiClient.post('/bookings', body: booking.toJson());
-    return BookingModel.fromJson(response);
+    if (response is Map<String, dynamic>) {
+      final data = response.containsKey('data') && response['data'] is Map<String, dynamic>
+          ? response['data'] as Map<String, dynamic>
+          : (response.containsKey('booking') && response['booking'] is Map<String, dynamic>
+              ? response['booking'] as Map<String, dynamic>
+              : response);
+      if (data.containsKey('id')) {
+        final parsed = BookingModel.fromJson(data);
+        return BookingModel(
+          id: parsed.id,
+          test: parsed.test.name != 'Diagnostic Test' ? parsed.test : booking.test,
+          lab: parsed.lab.name != 'Tripoli Central Diagnostic Lab' ? parsed.lab : booking.lab,
+          date: parsed.date,
+          timeSlot: parsed.timeSlot.isNotEmpty ? parsed.timeSlot : booking.timeSlot,
+          patient: parsed.patient.name != 'Dani' ? parsed.patient : booking.patient,
+          isHomeCollection: parsed.isHomeCollection,
+          status: parsed.status,
+          paymentStatus: parsed.paymentStatus,
+          totalAmount: parsed.totalAmount > 0 ? parsed.totalAmount : booking.totalAmount,
+        );
+      }
+    }
+    return booking;
   }
 
   @override
   Future<void> cancelBooking(String bookingId) async {
-    await apiClient.put('/bookings/$bookingId/cancel');
+    try {
+      await apiClient.post('/bookings/$bookingId/cancel');
+    } catch (_) {
+      await apiClient.put('/bookings/$bookingId/cancel');
+    }
   }
 }
 

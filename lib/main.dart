@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'core/constants/api_constants.dart';
 import 'core/network/api_client.dart';
 import 'core/providers/app_state.dart';
 import 'features/auth/data/datasources.dart';
@@ -14,23 +16,25 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase (reads google-services.json on Android)
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint('Firebase initialization warning: $e');
+  // Initialize Firebase (reads google-services.json on Android / iOS)
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('Firebase initialization warning: $e');
+    }
   }
 
   // Clean Architecture Bootstrapping (Feature-First)
-  final apiClient = ApiClient(baseUrl: 'http://localhost:8000/api');
+  final apiClient = ApiClient(baseUrl: ApiConstants.baseUrl);
 
-  // Auth feature dependencies (Powered by Firebase Auth)
-  final authFirebase = AuthFirebaseDataSourceImpl();
+  // Auth feature dependencies (Powered by Laravel REST API)
+  final authRemote = AuthRemoteDataSourceImpl(apiClient);
   final authMock = AuthMockDataSourceImpl();
   final authRepository = AuthRepositoryImpl(
-    remoteDataSource: authFirebase,
+    remoteDataSource: authRemote,
     mockDataSource: authMock,
-    useRemote: true, // Uses Firebase Auth for login & register
+    useRemote: true,
   );
 
   // Booking feature dependencies
@@ -39,7 +43,7 @@ void main() async {
   final bookingRepository = BookingRepositoryImpl(
     remoteDataSource: bookingRemote,
     mockDataSource: bookingMock,
-    useRemote: false,
+    useRemote: true,
   );
 
   // Health feature dependencies
@@ -48,7 +52,7 @@ void main() async {
   final healthRepository = HealthRepositoryImpl(
     remoteDataSource: healthRemote,
     mockDataSource: healthMock,
-    useRemote: false,
+    useRemote: true,
   );
 
   runApp(

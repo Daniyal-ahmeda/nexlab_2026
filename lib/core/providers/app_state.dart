@@ -150,7 +150,10 @@ class AppState extends ChangeNotifier {
     _setLoading(true);
     _setError(null);
     try {
-      _currentUser = await _getCurrentUserUseCase();
+      final user = await _getCurrentUserUseCase();
+      if (user != null) {
+        _currentUser = user;
+      }
       _allTests = await _getTestsUseCase();
       _allLabs = await _getLabsUseCase();
       _bookings = await _getBookingsUseCase();
@@ -308,13 +311,25 @@ class AppState extends ChangeNotifier {
     _setError(null);
     try {
       final bookingId = 'NXL${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+      final patientObj = selectedPatient ??
+          (_currentUser != null
+              ? _currentUser!.toFamilyMember()
+              : const FamilyMember(
+                  id: 'f_self',
+                  name: 'izwa',
+                  relationship: 'Self',
+                  age: 28,
+                  gender: 'Female',
+                  bloodGroup: 'O+',
+                ));
+
       final booking = Booking(
         id: bookingId,
         test: selectedTest!,
         lab: selectedLab!,
         date: selectedDate ?? DateTime.now(),
         timeSlot: selectedTimeSlot ?? '09:00 AM',
-        patient: selectedPatient ?? (_currentUser != null ? _currentUser!.toFamilyMember() : const FamilyMember(id: 'guest', name: 'Guest', relationship: 'Self', age: 30, gender: 'Male', bloodGroup: 'O+')),
+        patient: patientObj,
         isHomeCollection: isHomeCollection,
         status: BookingStatus.pending,
         paymentStatus: PaymentStatus.paid,
@@ -323,6 +338,7 @@ class AppState extends ChangeNotifier {
 
       final confirmed = await _createBookingUseCase(booking);
       _bookings.insert(0, confirmed);
+      notifyListeners();
       return confirmed;
     } catch (e) {
       _setError(e.toString());
