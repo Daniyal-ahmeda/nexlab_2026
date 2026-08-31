@@ -2,6 +2,33 @@ import 'package:flutter/material.dart';
 import '../domain/entities.dart';
 import '../../health/data/models.dart';
 
+double _parseDouble(dynamic val, [double defaultVal = 0.0]) {
+  if (val == null) return defaultVal;
+  if (val is num) return val.toDouble();
+  return double.tryParse(val.toString()) ?? defaultVal;
+}
+
+int _parseInt(dynamic val, [int defaultVal = 0]) {
+  if (val == null) return defaultVal;
+  if (val is num) return val.toInt();
+  return int.tryParse(val.toString()) ?? defaultVal;
+}
+
+bool _parseBool(dynamic val, [bool defaultVal = false]) {
+  if (val == null) return defaultVal;
+  if (val is bool) return val;
+  if (val is num) return val != 0;
+  final str = val.toString().trim().toLowerCase();
+  if (str == 'true' || str == '1' || str == 'yes') return true;
+  if (str == 'false' || str == '0' || str == 'no') return false;
+  return defaultVal;
+}
+
+String _parseString(dynamic val, [String defaultVal = '']) {
+  if (val == null) return defaultVal;
+  return val.toString().trim();
+}
+
 class DiagnosticTestModel extends DiagnosticTest {
   const DiagnosticTestModel({
     required super.id,
@@ -20,40 +47,46 @@ class DiagnosticTestModel extends DiagnosticTest {
 
   factory DiagnosticTestModel.fromJson(Map<String, dynamic> json) {
     IconData defaultIcon = Icons.science_outlined;
-    final name = json['name']?.toString().toLowerCase() ?? '';
+    final rawName = _parseString(json['name'] ?? json['title'] ?? json['test_name']).toLowerCase();
     
-    if (name.contains('lipid')) {
+    if (rawName.contains('lipid') || rawName.contains('cholesterol')) {
       defaultIcon = Icons.water_drop_outlined;
-    } else if (name.contains('complete blood') || name.contains('cbc')) {
+    } else if (rawName.contains('complete blood') || rawName.contains('cbc') || rawName.contains('blood')) {
       defaultIcon = Icons.bloodtype_outlined;
-    } else if (name.contains('thyroid') || name.contains('tft')) {
+    } else if (rawName.contains('thyroid') || rawName.contains('tft') || rawName.contains('tsh')) {
       defaultIcon = Icons.psychology_outlined;
-    } else if (name.contains('sugar') || name.contains('glucose')) {
+    } else if (rawName.contains('sugar') || rawName.contains('glucose') || rawName.contains('hba1c') || rawName.contains('diabetes')) {
       defaultIcon = Icons.opacity_outlined;
-    } else if (name.contains('liver')) {
+    } else if (rawName.contains('liver') || rawName.contains('alt') || rawName.contains('ast')) {
       defaultIcon = Icons.health_and_safety_outlined;
-    } else if (name.contains('kidney')) {
+    } else if (rawName.contains('kidney') || rawName.contains('creatinine') || rawName.contains('urea')) {
       defaultIcon = Icons.medical_services_outlined;
-    } else if (name.contains('vitamin')) {
+    } else if (rawName.contains('vitamin') || rawName.contains('d3') || rawName.contains('b12')) {
       defaultIcon = Icons.wb_sunny_outlined;
-    } else if (name.contains('heart')) {
+    } else if (rawName.contains('heart') || rawName.contains('cardiac') || rawName.contains('troponin')) {
       defaultIcon = Icons.favorite_border;
-    } else if (name.contains('full body') || name.contains('checkup')) {
+    } else if (rawName.contains('full body') || rawName.contains('checkup') || rawName.contains('package')) {
       defaultIcon = Icons.assignment_outlined;
     }
 
+    final testName = _parseString(json['name'] ?? json['title'] ?? json['test_name']);
+    final category = _parseString(json['category'] ?? json['category_name'] ?? 'General', 'General');
+    final subtitle = _parseString(json['subtitle'] ?? json['short_description'] ?? json['tagline'] ?? category);
+    final description = _parseString(json['description'] ?? json['details'] ?? json['overview'] ?? '$testName Diagnostic Panel');
+    final sampleType = _parseString(json['sample_type'] ?? json['sample'] ?? json['specimen'] ?? 'Blood', 'Blood');
+
     return DiagnosticTestModel(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      category: json['category'] ?? '',
-      subtitle: json['subtitle'] ?? '',
-      description: json['description'] ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      sampleType: json['sample_type'] ?? 'Blood',
-      reportsInHours: json['reports_in_hours'] as int? ?? 24,
-      fastingRequired: json['fasting_required'] as bool? ?? false,
-      isPopular: json['is_popular'] as bool? ?? false,
-      isPackage: json['is_package'] as bool? ?? false,
+      id: _parseString(json['id'] ?? json['test_id'], 't_${DateTime.now().millisecondsSinceEpoch}'),
+      name: testName,
+      category: category,
+      subtitle: subtitle,
+      description: description,
+      price: _parseDouble(json['price'] ?? json['cost'] ?? json['fee']),
+      sampleType: sampleType,
+      reportsInHours: _parseInt(json['reports_in_hours'] ?? json['turnaround_hours'] ?? json['turnaround_time'] ?? json['hours'], 24),
+      fastingRequired: _parseBool(json['fasting_required'] ?? json['is_fasting_required'] ?? json['fasting']),
+      isPopular: _parseBool(json['is_popular'] ?? json['popular'] ?? json['featured']),
+      isPackage: _parseBool(json['is_package'] ?? json['package'] ?? json['bundle']),
       icon: defaultIcon,
     );
   }
@@ -91,15 +124,15 @@ class LabOptionModel extends LabOption {
 
   factory LabOptionModel.fromJson(Map<String, dynamic> json) {
     return LabOptionModel(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewsCount: json['reviews_count'] as int? ?? 0,
-      address: json['address'] ?? '',
-      hours: json['hours'] ?? '',
-      phone: json['phone'] ?? '',
-      hasHomeCollection: json['has_home_collection'] as bool? ?? false,
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      id: _parseString(json['id'] ?? json['lab_id'], 'l1'),
+      name: _parseString(json['name'] ?? json['lab_name'], 'Tripoli Diagnostic Lab'),
+      rating: _parseDouble(json['rating'], 4.9),
+      reviewsCount: _parseInt(json['reviews_count'] ?? json['reviews'], 120),
+      address: _parseString(json['address'] ?? json['location'], 'Tripoli, Libya'),
+      hours: _parseString(json['hours'] ?? json['working_hours'], '08:00 AM - 08:00 PM'),
+      phone: _parseString(json['phone'] ?? json['mobile'], '+218 91 000 0000'),
+      hasHomeCollection: _parseBool(json['has_home_collection'] ?? json['home_visit'], true),
+      price: _parseDouble(json['price'] ?? json['home_charge'], 0.0),
     );
   }
 
@@ -133,25 +166,27 @@ class BookingModel extends Booking {
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    final statusStr = _parseString(json['status']).toLowerCase();
     BookingStatus statusVal = BookingStatus.pending;
-    if (json['status'] == 'completed') statusVal = BookingStatus.completed;
-    if (json['status'] == 'cancelled') statusVal = BookingStatus.cancelled;
+    if (statusStr == 'completed') statusVal = BookingStatus.completed;
+    if (statusStr == 'cancelled') statusVal = BookingStatus.cancelled;
 
+    final payStr = _parseString(json['payment_status']).toLowerCase();
     PaymentStatus payVal = PaymentStatus.unpaid;
-    if (json['payment_status'] == 'paid') payVal = PaymentStatus.paid;
+    if (payStr == 'paid') payVal = PaymentStatus.paid;
 
     DiagnosticTestModel testObj;
     if (json.containsKey('test') && json['test'] is Map<String, dynamic>) {
       testObj = DiagnosticTestModel.fromJson(json['test'] as Map<String, dynamic>);
     } else {
-      final testId = json['diagnostic_test_id']?.toString() ?? json['test_id']?.toString() ?? 't9';
+      final testId = _parseString(json['diagnostic_test_id'] ?? json['test_id'], 't1');
       testObj = DiagnosticTestModel(
         id: testId,
-        name: json['test_name']?.toString() ?? 'Diagnostic Test',
+        name: _parseString(json['test_name'], 'Diagnostic Test'),
         category: 'General',
         subtitle: 'Lab Test',
         description: 'Comprehensive Diagnostic Panel',
-        price: (json['total_amount'] as num?)?.toDouble() ?? 140.0,
+        price: _parseDouble(json['total_amount'] ?? json['price'], 140.0),
         sampleType: 'Blood',
         reportsInHours: 24,
         fastingRequired: false,
@@ -165,10 +200,10 @@ class BookingModel extends Booking {
     if (json.containsKey('lab') && json['lab'] is Map<String, dynamic>) {
       labObj = LabOptionModel.fromJson(json['lab'] as Map<String, dynamic>);
     } else {
-      final labId = json['partner_lab_id']?.toString() ?? json['lab_id']?.toString() ?? 'l1';
+      final labId = _parseString(json['partner_lab_id'] ?? json['lab_id'], 'l1');
       labObj = LabOptionModel(
         id: labId,
-        name: json['lab_name']?.toString() ?? 'Tripoli Central Diagnostic Lab',
+        name: _parseString(json['lab_name'], 'Tripoli Central Diagnostic Lab'),
         rating: 4.9,
         reviewsCount: 312,
         address: 'Tripoli, Libya',
@@ -184,26 +219,33 @@ class BookingModel extends Booking {
       patientObj = FamilyMemberModel.fromJson(json['patient'] as Map<String, dynamic>);
     } else {
       patientObj = FamilyMemberModel(
-        id: json['patient_id']?.toString() ?? 'f_self',
-        name: json['patient_name']?.toString() ?? 'Dani',
+        id: _parseString(json['patient_id'], 'f_self'),
+        name: _parseString(json['patient_name'], 'Patient'),
         relationship: 'Self',
-        age: (json['patient_age'] as int?) ?? 25,
-        gender: json['patient_gender']?.toString() ?? 'Male',
-        bloodGroup: json['patient_blood_group']?.toString() ?? 'O+',
+        age: _parseInt(json['patient_age'], 25),
+        gender: _parseString(json['patient_gender'], 'Male'),
+        bloodGroup: _parseString(json['patient_blood_group'], 'O+'),
       );
     }
 
+    DateTime parsedDate;
+    try {
+      parsedDate = json['date'] != null ? DateTime.parse(json['date'].toString()) : DateTime.now();
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
     return BookingModel(
-      id: json['id']?.toString() ?? 'NXL${DateTime.now().millisecondsSinceEpoch}',
+      id: _parseString(json['id'], 'NXL${DateTime.now().millisecondsSinceEpoch}'),
       test: testObj,
       lab: labObj,
-      date: json['date'] != null ? DateTime.parse(json['date'].toString()) : DateTime.now(),
-      timeSlot: json['time_slot']?.toString() ?? '09:00 AM',
+      date: parsedDate,
+      timeSlot: _parseString(json['time_slot'], '09:00 AM'),
       patient: patientObj,
-      isHomeCollection: json['is_home_collection'] as bool? ?? false,
+      isHomeCollection: _parseBool(json['is_home_collection'] ?? json['home_visit']),
       status: statusVal,
       paymentStatus: payVal,
-      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? (json['price'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: _parseDouble(json['total_amount'] ?? json['price']),
     );
   }
 
@@ -219,7 +261,7 @@ class BookingModel extends Booking {
       'id': id,
       'diagnostic_test_id': test.id.toString(),
       'partner_lab_id': lab.id.toString(),
-      'patient_name': patient.name.isNotEmpty ? patient.name : 'izwa',
+      'patient_name': patient.name.isNotEmpty ? patient.name : 'Patient',
       'test_id': test.id.toString(),
       'lab_id': lab.id.toString(),
       'date': date.toIso8601String().substring(0, 10),

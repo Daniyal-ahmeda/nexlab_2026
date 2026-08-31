@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
+import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/home/home_screen.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/bookings/bookings_screen.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/favorites/favorites_screen.dart';
@@ -34,28 +35,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context);
-    
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 250),
           transitionBuilder: (child, animation) {
             return FadeTransition(
               opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.03),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                )),
-                child: child,
-              ),
+              child: child,
             );
           },
           child: _screens[_currentIndex],
@@ -63,84 +55,75 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
+          color: isDark ? const Color(0xFF161F30) : Colors.white,
           border: Border(
             top: BorderSide(
-              color: theme.brightness == Brightness.dark
-                  ? Colors.grey.shade900
-                  : Colors.grey.shade200,
-              width: 1,
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -3),
+            ),
+          ],
         ),
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(0, Icons.home_filled, Icons.home_outlined, l10n.navHome),
-            _buildNavItem(1, Icons.calendar_month, Icons.calendar_month_outlined, l10n.navBookings),
-            _buildNavItem(2, Icons.favorite, Icons.favorite_border, state.isArabic ? 'المفضلة' : 'Favorites'),
-            _buildNavItem(3, Icons.person, Icons.person_outline, l10n.navProfile),
+            _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, l10n.navHome, isDark),
+            _buildNavItem(1, Icons.calendar_month_rounded, Icons.calendar_month_outlined, l10n.navBookings, isDark),
+            _buildNavItem(2, Icons.favorite_rounded, Icons.favorite_border_rounded, state.isArabic ? 'المفضلة' : 'Favorites', isDark),
+            _buildNavItem(3, Icons.person_rounded, Icons.person_outline_rounded, l10n.navProfile, isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label) {
+  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, bool isDark) {
     final isSelected = _currentIndex == index;
-    final theme = Theme.of(context);
-    final color = isSelected ? theme.primaryColor : (theme.brightness == Brightness.dark ? Colors.grey.shade400 : Colors.grey.shade500);
+    final color = isSelected ? AppTheme.primaryBlue : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
 
     return InkWell(
       onTap: () {
         if (_currentIndex != index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         }
       },
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              )
+            : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedScale(
-              scale: isSelected ? 1.15 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutBack,
-              child: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                color: color,
-                size: 26,
-              ),
+            Icon(
+              isSelected ? activeIcon : inactiveIcon,
+              color: color,
+              size: 24,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 color: color,
                 fontFamily: 'Outfit',
               ),
             ),
-            const SizedBox(height: 2),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              height: 3,
-              width: isSelected ? 14 : 0,
-              decoration: BoxDecoration(
-                color: theme.primaryColor,
-                borderRadius: BorderRadius.circular(1.5),
-              ),
-            )
           ],
         ),
       ),
     );
   }
 }
-

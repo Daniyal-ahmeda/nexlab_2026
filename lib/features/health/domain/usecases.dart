@@ -1,4 +1,4 @@
-﻿import 'entities.dart';
+import 'entities.dart';
 import 'repositories.dart';
 
 class GetResultsUseCase {
@@ -10,14 +10,6 @@ class GetResultsUseCase {
   }
 }
 
-class UploadPrescriptionUseCase {
-  final HealthRepository repository;
-  UploadPrescriptionUseCase(this.repository);
-
-  Future<void> call(String filePath) {
-    return repository.uploadPrescription(filePath);
-  }
-}
 
 class GetFamilyMembersUseCase {
   final HealthRepository repository;

@@ -1,4 +1,4 @@
-﻿import '../../../core/errors/exceptions.dart';
+import '../../../core/errors/exceptions.dart';
 import '../../../core/errors/failures.dart';
 import '../domain/entities.dart';
 import '../domain/repositories.dart';
@@ -53,6 +53,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) {
     return _execute(
       () => remoteDataSource.register(
@@ -64,6 +65,7 @@ class AuthRepositoryImpl implements AuthRepository {
         gender: gender,
         bloodGroup: bloodGroup,
         firebaseToken: firebaseToken,
+        phone: phone,
       ),
       () => mockDataSource.register(
         name: name,
@@ -74,6 +76,7 @@ class AuthRepositoryImpl implements AuthRepository {
         gender: gender,
         bloodGroup: bloodGroup,
         firebaseToken: firebaseToken,
+        phone: phone,
       ),
     );
   }

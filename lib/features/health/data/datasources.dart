@@ -1,10 +1,9 @@
-﻿import '../../../core/network/api_client.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/network/mock_database.dart';
 import 'models.dart';
 
 abstract class HealthRemoteDataSource {
   Future<List<TestResultModel>> getResults();
-  Future<void> uploadPrescription(String filePath);
 
   Future<List<FamilyMemberModel>> getFamilyMembers();
   Future<FamilyMemberModel> addFamilyMember({
@@ -32,13 +31,32 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
   HealthRemoteDataSourceImpl(this.apiClient);
 
   List<dynamic> _extractList(dynamic response) {
-    if (response is Map<String, dynamic>) {
-      if (response.containsKey('data') && response['data'] is List) {
-        return response['data'] as List<dynamic>;
-      }
-    }
     if (response is List) {
       return response;
+    }
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data')) {
+        final d = response['data'];
+        if (d is List) return d;
+        if (d is Map<String, dynamic>) {
+          if (d.containsKey('data') && d['data'] is List) return d['data'] as List<dynamic>;
+          if (d.containsKey('results') && d['results'] is List) return d['results'] as List<dynamic>;
+          if (d.containsKey('family_members') && d['family_members'] is List) return d['family_members'] as List<dynamic>;
+          if (d.containsKey('payment_methods') && d['payment_methods'] is List) return d['payment_methods'] as List<dynamic>;
+        }
+      }
+      if (response.containsKey('results') && response['results'] is List) {
+        return response['results'] as List<dynamic>;
+      }
+      if (response.containsKey('family_members') && response['family_members'] is List) {
+        return response['family_members'] as List<dynamic>;
+      }
+      if (response.containsKey('payment_methods') && response['payment_methods'] is List) {
+        return response['payment_methods'] as List<dynamic>;
+      }
+      if (response.containsKey('items') && response['items'] is List) {
+        return response['items'] as List<dynamic>;
+      }
     }
     return [];
   }
@@ -48,19 +66,6 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
     final response = await apiClient.get('/results');
     final list = _extractList(response);
     return list.map((json) => TestResultModel.fromJson(json)).toList();
-  }
-
-  @override
-  Future<void> uploadPrescription(String filePath) async {
-    try {
-      await apiClient.post('/prescriptions/upload', body: {
-        'file_path': filePath,
-      });
-    } catch (_) {
-      await apiClient.post('/prescriptions', body: {
-        'file_path': filePath,
-      });
-    }
   }
 
   @override
@@ -136,7 +141,6 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
 
 abstract class HealthMockDataSource {
   Future<List<TestResultModel>> getResults();
-  Future<void> uploadPrescription(String filePath);
 
   Future<List<FamilyMemberModel>> getFamilyMembers();
   Future<FamilyMemberModel> addFamilyMember({
@@ -169,12 +173,6 @@ class HealthMockDataSourceImpl implements HealthMockDataSource {
   Future<List<TestResultModel>> getResults() async {
     await _delay();
     return db.results;
-  }
-
-  @override
-  Future<void> uploadPrescription(String filePath) async {
-    await _delay();
-    db.uploadedPrescriptions.add(filePath);
   }
 
   @override

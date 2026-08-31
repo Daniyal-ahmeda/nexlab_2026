@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
-import 'package:nexlab_2026/core/routes/app_routes.dart';
 import 'package:nexlab_2026/features/auth/presentation/pages/otp/otp_screen.dart';
 import 'package:nexlab_2026/shared/widgets/nexlab_logo.dart';
 
@@ -62,6 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       gender: _gender,
       bloodGroup: _bloodGroup,
       firebaseToken: firebaseToken,
+      phone: _formatPhoneNumber(_phoneController.text),
     );
 
     if (!mounted) return;
@@ -75,7 +75,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
     } else {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.initial, (route) => false);
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     }
   }
 
@@ -183,11 +185,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const NexLabLogo(
-                    showText: true,
-                    size: 34,
+                  NexLabLogo(
+                    useFullLogo: true,
+                    height: 38,
+                    isWhite: isDark,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     l10n.createProfile,
                     style: TextStyle(

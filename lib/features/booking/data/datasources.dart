@@ -16,13 +16,35 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   BookingRemoteDataSourceImpl(this.apiClient);
 
   List<dynamic> _extractList(dynamic response) {
-    if (response is Map<String, dynamic>) {
-      if (response.containsKey('data') && response['data'] is List) {
-        return response['data'] as List<dynamic>;
-      }
-    }
     if (response is List) {
       return response;
+    }
+    if (response is Map<String, dynamic>) {
+      if (response.containsKey('data')) {
+        final d = response['data'];
+        if (d is List) return d;
+        if (d is Map<String, dynamic>) {
+          if (d.containsKey('data') && d['data'] is List) return d['data'] as List<dynamic>;
+          if (d.containsKey('tests') && d['tests'] is List) return d['tests'] as List<dynamic>;
+          if (d.containsKey('labs') && d['labs'] is List) return d['labs'] as List<dynamic>;
+          if (d.containsKey('bookings') && d['bookings'] is List) return d['bookings'] as List<dynamic>;
+        }
+      }
+      if (response.containsKey('tests') && response['tests'] is List) {
+        return response['tests'] as List<dynamic>;
+      }
+      if (response.containsKey('labs') && response['labs'] is List) {
+        return response['labs'] as List<dynamic>;
+      }
+      if (response.containsKey('bookings') && response['bookings'] is List) {
+        return response['bookings'] as List<dynamic>;
+      }
+      if (response.containsKey('results') && response['results'] is List) {
+        return response['results'] as List<dynamic>;
+      }
+      if (response.containsKey('items') && response['items'] is List) {
+        return response['items'] as List<dynamic>;
+      }
     }
     return [];
   }

@@ -4,10 +4,11 @@ class AppTheme {
   // Brand colors
   static const Color primaryBlue = Color(0xFF1E6DFB);
   static const Color primaryBlueDark = Color(0xFF0F56D3);
+  static const Color primaryCyan = Color(0xFF06B6D4);
   static const Color backgroundLight = Color(0xFFF8FAFC);
-  static const Color backgroundDark = Color(0xFF0F172A);
+  static const Color backgroundDark = Color(0xFF0B0F19);
   static const Color cardLight = Colors.white;
-  static const Color cardDark = Color(0xFF1E293B);
+  static const Color cardDark = Color(0xFF161F30);
 
   // Status colors
   static const Color emeraldGreen = Color(0xFF10B981);
@@ -15,6 +16,7 @@ class AppTheme {
   static const Color purpleAmethyst = Color(0xFF8B5CF6);
   static const Color orangeSunset = Color(0xFFF97316);
   static const Color amberGold = Color(0xFFF59E0B);
+  static const Color pinkRose = Color(0xFFEC4899);
 
   static const Color textMainLight = Color(0xFF0F172A);
   static const Color textMutedLight = Color(0xFF64748B);
@@ -39,8 +41,8 @@ class AppTheme {
         color: cardLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
       ),
       appBarTheme: const AppBarTheme(
@@ -50,18 +52,18 @@ class AppTheme {
         iconTheme: IconThemeData(color: textMainLight),
         titleTextStyle: TextStyle(
           color: textMainLight,
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
           fontFamily: 'Outfit',
         ),
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(fontFamily: 'Outfit', fontSize: 32, fontWeight: FontWeight.bold, color: textMainLight),
-        headlineMedium: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.bold, color: textMainLight),
-        titleLarge: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.w600, color: textMainLight),
-        titleMedium: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.w600, color: textMainLight),
-        bodyLarge: TextStyle(fontFamily: 'Inter', fontSize: 16, color: textMainLight),
-        bodyMedium: TextStyle(fontFamily: 'Inter', fontSize: 14, color: textMutedLight),
+        headlineMedium: TextStyle(fontFamily: 'Outfit', fontSize: 22, fontWeight: FontWeight.bold, color: textMainLight),
+        titleLarge: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: textMainLight),
+        titleMedium: TextStyle(fontFamily: 'Outfit', fontSize: 15, fontWeight: FontWeight.w600, color: textMainLight),
+        bodyLarge: TextStyle(fontFamily: 'Inter', fontSize: 15, color: textMainLight),
+        bodyMedium: TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: textMutedLight),
         labelLarge: TextStyle(fontFamily: 'Outfit', fontSize: 14, fontWeight: FontWeight.bold, color: primaryBlue),
       ),
     );
@@ -85,8 +87,8 @@ class AppTheme {
         color: cardDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: Colors.grey.shade800, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF1E293B), width: 1),
         ),
       ),
       appBarTheme: const AppBarTheme(
@@ -96,18 +98,18 @@ class AppTheme {
         iconTheme: IconThemeData(color: textMainDark),
         titleTextStyle: TextStyle(
           color: textMainDark,
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
           fontFamily: 'Outfit',
         ),
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(fontFamily: 'Outfit', fontSize: 32, fontWeight: FontWeight.bold, color: textMainDark),
-        headlineMedium: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.bold, color: textMainDark),
-        titleLarge: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.w600, color: textMainDark),
-        titleMedium: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.w600, color: textMainDark),
-        bodyLarge: TextStyle(fontFamily: 'Inter', fontSize: 16, color: textMainDark),
-        bodyMedium: TextStyle(fontFamily: 'Inter', fontSize: 14, color: textMutedDark),
+        headlineMedium: TextStyle(fontFamily: 'Outfit', fontSize: 22, fontWeight: FontWeight.bold, color: textMainDark),
+        titleLarge: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: textMainDark),
+        titleMedium: TextStyle(fontFamily: 'Outfit', fontSize: 15, fontWeight: FontWeight.w600, color: textMainDark),
+        bodyLarge: TextStyle(fontFamily: 'Inter', fontSize: 15, color: textMainDark),
+        bodyMedium: TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: textMutedDark),
         labelLarge: TextStyle(fontFamily: 'Outfit', fontSize: 14, fontWeight: FontWeight.bold, color: primaryBlue),
       ),
     );
@@ -116,6 +118,12 @@ class AppTheme {
   // Gradients for cards and backgrounds
   static const LinearGradient blueGradient = LinearGradient(
     colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient oceanGradient = LinearGradient(
+    colors: [Color(0xFF1E6DFB), Color(0xFF06B6D4)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -133,7 +141,7 @@ class AppTheme {
   );
 
   static const LinearGradient purpleGradient = LinearGradient(
-    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+    colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -144,15 +152,29 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient yellowGradient = LinearGradient(
-    colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
+  static const LinearGradient profileScoreGradient = LinearGradient(
+    colors: [Color(0xFF1E6DFB), Color(0xFF6366F1), Color(0xFF8B5CF6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient profileScoreGradient = LinearGradient(
-    colors: [Color(0xFF1E6DFB), Color(0xFF6366F1)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // Modern Box Shadow helper
+  static List<BoxShadow> cardShadow(bool isDark) {
+    if (isDark) {
+      return [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.35),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
+    }
+    return [
+      BoxShadow(
+        color: const Color(0xFF64748B).withValues(alpha: 0.08),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      ),
+    ];
+  }
 }

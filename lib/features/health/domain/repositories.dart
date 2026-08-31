@@ -1,9 +1,8 @@
-﻿import 'entities.dart';
+import 'entities.dart';
 
 abstract class HealthRepository {
   // Results & Reports
   Future<List<TestResult>> getResults();
-  Future<void> uploadPrescription(String filePath);
 
   // Family Management
   Future<List<FamilyMember>> getFamilyMembers();

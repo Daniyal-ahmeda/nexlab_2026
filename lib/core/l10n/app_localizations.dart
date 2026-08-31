@@ -67,6 +67,8 @@ class AppLocalizations {
       // OTP Verification
       'verifyYourPhone': 'Verify Your Phone',
       'otpSubtitle': 'Enter the 6-digit code sent to your phone number.',
+      'enterOtpSubtitle': 'Enter the 6-digit code sent to your phone number.',
+      'verifyCode': 'Verify Code',
       'otpPaymentSubtitle': 'Enter the 6-digit verification code to link your Libyan payment gateway.',
       'verifyAndContinue': 'Verify & Continue',
       'resendCode': 'Resend Code',
@@ -91,12 +93,25 @@ class AppLocalizations {
       'addNewGateway': 'Add New Libyan Payment Gateway',
       'supportedNetworks': 'SUPPORTED LIBYAN NETWORKS',
       'defaultBadge': 'DEFAULT',
+      'defaultMethod': 'DEFAULT',
       'setAsPrimary': 'Set as Primary Payment Method',
+      'setAsDefault': 'Set as Default',
+      'deleteMethod': 'Delete Method',
       'addPaymentTitle': 'Add Libyan Payment Method',
+      'addPaymentMethodTitle': 'Add Libyan Payment Method',
+      'selectPaymentGateway': 'Select Payment Gateway',
+      'walletOrCardNumber': 'Wallet / Phone / Card Number',
+      'enterAccountNumber': 'Please enter account or phone number',
+      'verifyViaSmsAndAdd': 'Verify via SMS & Add Method',
+      'paymentMethodAddedSuccess': 'Payment method linked successfully.',
       'paymentNetwork': 'Payment Network',
       'accountOrPhone': 'Mobile / Account Number (e.g. 091-XXXXXXX)',
       'expiryOptional': 'Expiry (MM/YY, optional)',
       'verifySmsAndAdd': 'Verify via SMS & Add Method',
+      'gatewayEdfaaly': 'Edfaaly',
+      'gatewayMobiCash': 'Mobi Cash',
+      'gatewaySadad': 'Sadad',
+      'gatewayTadawul': 'Tadawul',
       'edfaaly': 'Edfaaly',
       'mobiCash': 'Mobi Cash',
       'sadad': 'Sadad',
@@ -108,6 +123,9 @@ class AppLocalizations {
 
       // Settings
       'settingsTitle': 'Settings & Security',
+      'preferences': 'PREFERENCES & DISPLAY',
+      'notifications': 'NOTIFICATIONS & ALERTS',
+      'dataStorage': 'DATA & STORAGE',
       'language': 'Language / اللغة',
       'arabic': 'العربية (Arabic)',
       'english': 'English (الإنجليزية)',
@@ -115,13 +133,17 @@ class AppLocalizations {
       'pushNotifications': 'Push Notifications',
       'pushSubtitle': 'Alerts for sample updates & report ready',
       'emailNotifications': 'Email Notifications',
+      'emailReports': 'Email Diagnostic Reports',
       'emailSubtitle': 'Official PDF report copies sent to email',
       'smsNotifications': 'SMS Appointment Reminders',
+      'smsAlerts': 'SMS Appointment Reminders',
       'smsSubtitle': 'Text updates for home technician arrival',
       'appearanceSection': 'APPEARANCE & THEME',
       'darkMode': 'Dark Mode',
       'storageSection': 'STORAGE & CACHE',
       'clearCache': 'Clear Report Cache',
+      'cachedData': 'cached medical reports',
+      'clear': 'Clear',
       'cacheFreed': 'Temporary medical report cache cleared.',
       'accountSection': 'ACCOUNT',
 
@@ -194,6 +216,8 @@ class AppLocalizations {
       // OTP Verification
       'verifyYourPhone': 'تأكيد رقم هاتفك',
       'otpSubtitle': 'أدخل رمز التحقق المكون من 6 أرقام المرسل إلى هاتفك.',
+      'enterOtpSubtitle': 'أدخل رمز التحقق المكون من 6 أرقام المرسل إلى هاتفك.',
+      'verifyCode': 'تأكيد الرمز',
       'otpPaymentSubtitle': 'أدخل رمز التحقق المكون من 6 أرقام لتأكيد ربط وسيلة الدفع الليبية.',
       'verifyAndContinue': 'تأكيد الرمز والمتابعة',
       'resendCode': 'إعادة إرسال الرمز',
@@ -218,12 +242,25 @@ class AppLocalizations {
       'addNewGateway': 'إضافة وسيلة دفع ليبية جديدة',
       'supportedNetworks': 'الشبكات والخدمات الليبية المدعومة',
       'defaultBadge': 'افتراضي',
+      'defaultMethod': 'افتراضي',
       'setAsPrimary': 'تعيين كوسيلة دفع رئيسية',
+      'setAsDefault': 'تعيين كافتراضي',
+      'deleteMethod': 'حذف الوسيلة',
       'addPaymentTitle': 'إضافة وسيلة دفع ليبية',
+      'addPaymentMethodTitle': 'إضافة وسيلة دفع ليبية',
+      'selectPaymentGateway': 'اختر بوابة الدفع',
+      'walletOrCardNumber': 'رقم المحفظة / الهاتف / البطاقة',
+      'enterAccountNumber': 'يرجى إدخال رقم الحساب أو الهاتف',
+      'verifyViaSmsAndAdd': 'تأكيد برمز الرسالة وإضافة الوسيلة',
+      'paymentMethodAddedSuccess': 'تم ربط وسيلة الدفع بنجاح.',
       'paymentNetwork': 'شبكة / وسيلة الدفع',
       'accountOrPhone': 'رقم الهاتف أو الحساب (مثال: 091-XXXXXXX)',
       'expiryOptional': 'تاريخ الصلاحية (اختياري للشهر/السنة)',
       'verifySmsAndAdd': 'تأكيد برمز الرسالة وإضافة الوسيلة',
+      'gatewayEdfaaly': 'إدفع لي',
+      'gatewayMobiCash': 'موبي كاش',
+      'gatewaySadad': 'سداد',
+      'gatewayTadawul': 'تداول',
       'edfaaly': 'إدفع لي',
       'mobiCash': 'موبي كاش',
       'sadad': 'سداد',
@@ -235,6 +272,9 @@ class AppLocalizations {
 
       // Settings
       'settingsTitle': 'الإعدادات والأمان',
+      'preferences': 'التفضيلات والمظهر',
+      'notifications': 'الإشعارات والتنبيهات',
+      'dataStorage': 'البيانات والمساحة',
       'language': 'اللغة / Language',
       'arabic': 'العربية (Arabic)',
       'english': 'English (الإنجليزية)',
@@ -242,13 +282,17 @@ class AppLocalizations {
       'pushNotifications': 'الإشعارات المباشرة',
       'pushSubtitle': 'تنبيهات فورية لجهوزية العينات والتقارير الطبية',
       'emailNotifications': 'إشعارات البريد الإلكتروني',
+      'emailReports': 'تقارير البريد الإلكتروني',
       'emailSubtitle': 'إرسال نسخ تقارير PDF الرسمية إلى بريدك',
       'smsNotifications': 'تذكيرات الرسائل القصيرة (SMS)',
+      'smsAlerts': 'تذكيرات الرسائل القصيرة (SMS)',
       'smsSubtitle': 'تحديثات وصول الفني عند السحب المنزلي',
       'appearanceSection': 'المظهر والسمات',
       'darkMode': 'الوضع الليلي (الداكن)',
       'storageSection': 'التخزين والذاكرة',
       'clearCache': 'مسح ذاكرة التخزين المؤقت للتقارير',
+      'cachedData': 'تقارير طبية مؤقتة',
+      'clear': 'مسح',
       'cacheFreed': 'تم تفريغ ذاكرة التخزين المؤقت للتقارير بنجاح.',
       'accountSection': 'إدارة الحساب',
 
@@ -326,6 +370,8 @@ class AppLocalizations {
 
   String get verifyYourPhone => translate('verifyYourPhone');
   String get otpSubtitle => translate('otpSubtitle');
+  String get enterOtpSubtitle => translate('enterOtpSubtitle');
+  String get verifyCode => translate('verifyCode');
   String get otpPaymentSubtitle => translate('otpPaymentSubtitle');
   String get verifyAndContinue => translate('verifyAndContinue');
   String get resendCode => translate('resendCode');
@@ -340,6 +386,7 @@ class AppLocalizations {
   String get navBookings => translate('navBookings');
   String get navResults => translate('navResults');
   String get navProfile => translate('navProfile');
+  String get favorites => isArabic ? 'الفحوصات المحفوظة' : 'Saved Tests';
 
   String get libyanPaymentGateways => translate('libyanPaymentGateways');
   String get paymentsProcessedInLyd => translate('paymentsProcessedInLyd');
@@ -348,12 +395,25 @@ class AppLocalizations {
   String get addNewGateway => translate('addNewGateway');
   String get supportedNetworks => translate('supportedNetworks');
   String get defaultBadge => translate('defaultBadge');
+  String get defaultMethod => translate('defaultMethod');
   String get setAsPrimary => translate('setAsPrimary');
+  String get setAsDefault => translate('setAsDefault');
+  String get deleteMethod => translate('deleteMethod');
   String get addPaymentTitle => translate('addPaymentTitle');
+  String get addPaymentMethodTitle => translate('addPaymentMethodTitle');
+  String get selectPaymentGateway => translate('selectPaymentGateway');
+  String get walletOrCardNumber => translate('walletOrCardNumber');
+  String get enterAccountNumber => translate('enterAccountNumber');
+  String get verifyViaSmsAndAdd => translate('verifyViaSmsAndAdd');
+  String get paymentMethodAddedSuccess => translate('paymentMethodAddedSuccess');
   String get paymentNetwork => translate('paymentNetwork');
   String get accountOrPhone => translate('accountOrPhone');
   String get expiryOptional => translate('expiryOptional');
   String get verifySmsAndAdd => translate('verifySmsAndAdd');
+  String get gatewayEdfaaly => translate('gatewayEdfaaly');
+  String get gatewayMobiCash => translate('gatewayMobiCash');
+  String get gatewaySadad => translate('gatewaySadad');
+  String get gatewayTadawul => translate('gatewayTadawul');
   String get edfaaly => translate('edfaaly');
   String get mobiCash => translate('mobiCash');
   String get sadad => translate('sadad');
@@ -364,6 +424,9 @@ class AppLocalizations {
   String get cash => translate('cash');
 
   String get settingsTitle => translate('settingsTitle');
+  String get preferences => translate('preferences');
+  String get notifications => translate('notifications');
+  String get dataStorage => translate('dataStorage');
   String get language => translate('language');
   String get arabic => translate('arabic');
   String get english => translate('english');
@@ -371,13 +434,17 @@ class AppLocalizations {
   String get pushNotifications => translate('pushNotifications');
   String get pushSubtitle => translate('pushSubtitle');
   String get emailNotifications => translate('emailNotifications');
+  String get emailReports => translate('emailReports');
   String get emailSubtitle => translate('emailSubtitle');
   String get smsNotifications => translate('smsNotifications');
+  String get smsAlerts => translate('smsAlerts');
   String get smsSubtitle => translate('smsSubtitle');
   String get appearanceSection => translate('appearanceSection');
   String get darkMode => translate('darkMode');
   String get storageSection => translate('storageSection');
   String get clearCache => translate('clearCache');
+  String get cachedData => translate('cachedData');
+  String get clear => translate('clear');
   String get cacheFreed => translate('cacheFreed');
   String get accountSection => translate('accountSection');
 

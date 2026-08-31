@@ -193,7 +193,6 @@ class MockDatabase {
 
   final List<BookingModel> bookings = [];
   final List<TestResultModel> results = [];
-  final List<String> uploadedPrescriptions = [];
 
   void _initDefaultData() {
     const defaultUser = UserModel(

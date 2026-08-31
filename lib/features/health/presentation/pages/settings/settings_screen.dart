@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
+import 'package:nexlab_2026/shared/widgets/nexlab_logo.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,14 +15,11 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = true;
   bool _emailNotifications = true;
-  bool _smsNotifications = false;
-  bool _autoDownload = true;
-  double _cacheSize = 245.0;
+  bool _smsNotifications = true;
+  double _cacheSize = 24.5;
 
   void _simulateClearCache(AppLocalizations l10n) {
-    setState(() {
-      _cacheSize = 0.0;
-    });
+    setState(() => _cacheSize = 0.0);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.cacheFreed),
@@ -33,23 +31,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showLanguageSelector(BuildContext context, AppState state, bool isDark, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF161F30) : Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   l10n.language,
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     fontFamily: 'Outfit',
                   ),
                 ),
@@ -59,17 +68,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(
                     l10n.arabic,
                     style: TextStyle(
-                      fontWeight: state.isArabic ? FontWeight.w800 : FontWeight.w500,
+                      fontWeight: state.isArabic ? FontWeight.w800 : FontWeight.w600,
+                      fontFamily: 'Outfit',
                       color: state.isArabic ? AppTheme.primaryBlue : null,
                     ),
                   ),
-                  trailing: state.isArabic
-                      ? const Icon(Icons.check_circle, color: AppTheme.primaryBlue)
-                      : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  tileColor: state.isArabic
-                      ? AppTheme.primaryBlue.withValues(alpha: 0.08)
-                      : null,
+                  trailing: state.isArabic ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryBlue) : null,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  tileColor: state.isArabic ? AppTheme.primaryBlue.withValues(alpha: 0.1) : null,
                   onTap: () {
                     state.setLocale(const Locale('ar'));
                     Navigator.pop(ctx);
@@ -81,17 +87,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(
                     l10n.english,
                     style: TextStyle(
-                      fontWeight: !state.isArabic ? FontWeight.w800 : FontWeight.w500,
+                      fontWeight: !state.isArabic ? FontWeight.w800 : FontWeight.w600,
+                      fontFamily: 'Outfit',
                       color: !state.isArabic ? AppTheme.primaryBlue : null,
                     ),
                   ),
-                  trailing: !state.isArabic
-                      ? const Icon(Icons.check_circle, color: AppTheme.primaryBlue)
-                      : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  tileColor: !state.isArabic
-                      ? AppTheme.primaryBlue.withValues(alpha: 0.08)
-                      : null,
+                  trailing: !state.isArabic ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryBlue) : null,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  tileColor: !state.isArabic ? AppTheme.primaryBlue.withValues(alpha: 0.1) : null,
                   onTap: () {
                     state.setLocale(const Locale('en'));
                     Navigator.pop(ctx);
@@ -109,6 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isArabic = state.isArabic;
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -117,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           l10n.settingsTitle,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             fontFamily: 'Outfit',
           ),
         ),
@@ -129,242 +133,150 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Language & Appearance
-              _buildSectionTitle(l10n.appearanceSection, isDark),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildActionRow(
-                      icon: Icons.language_outlined,
-                      title: l10n.language,
-                      valueText: state.isArabic ? l10n.arabic : l10n.english,
-                      onTap: () => _showLanguageSelector(context, state, isDark, l10n),
-                      isDark: isDark,
-                    ),
-                    const Divider(height: 1),
-                    _buildSwitchRow(
-                      icon: Icons.dark_mode_outlined,
-                      title: l10n.darkMode,
-                      subtitle: isDark ? 'OLED Dark Mode active' : 'Standard clean mode',
-                      value: state.isDarkMode,
-                      onChanged: (_) => state.toggleTheme(),
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Notifications
-              _buildSectionTitle(l10n.notificationsSection, isDark),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildSwitchRow(
-                      icon: Icons.notifications_none_outlined,
-                      title: l10n.pushNotifications,
-                      subtitle: l10n.pushSubtitle,
-                      value: _pushNotifications,
-                      onChanged: (val) => setState(() => _pushNotifications = val),
-                      isDark: isDark,
-                    ),
-                    const Divider(height: 1),
-                    _buildSwitchRow(
-                      icon: Icons.mail_outline,
-                      title: l10n.emailNotifications,
-                      subtitle: l10n.emailSubtitle,
-                      value: _emailNotifications,
-                      onChanged: (val) => setState(() => _emailNotifications = val),
-                      isDark: isDark,
-                    ),
-                    const Divider(height: 1),
-                    _buildSwitchRow(
-                      icon: Icons.sms_outlined,
-                      title: l10n.smsNotifications,
-                      subtitle: l10n.smsSubtitle,
-                      value: _smsNotifications,
-                      onChanged: (val) => setState(() => _smsNotifications = val),
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Data & Storage
-              _buildSectionTitle(l10n.storageSection, isDark),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildSwitchRow(
-                      icon: Icons.download_outlined,
-                      title: 'Auto-Download Medical PDFs',
-                      subtitle: 'Store reports offline upon completion',
-                      value: _autoDownload,
-                      onChanged: (val) => setState(() => _autoDownload = val),
-                      isDark: isDark,
-                    ),
-                    const Divider(height: 1),
-                    _buildActionRow(
-                      icon: Icons.delete_sweep_outlined,
-                      title: l10n.clearCache,
-                      valueText: _cacheSize > 0 ? '${_cacheSize.toInt()} MB' : '0 MB',
-                      onTap: () => _simulateClearCache(l10n),
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, bool isDark) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4.0, bottom: 8.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-          letterSpacing: 0.8,
-          fontFamily: 'Outfit',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchRow({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required bool isDark,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 18, color: isDark ? Colors.grey.shade300 : const Color(0xFF334155)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Preferences Section
+            _buildSectionHeader(l10n.preferences, isDark),
+            const SizedBox(height: 10),
+            _buildCard(
+              isDark: isDark,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Outfit',
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
+                ListTile(
+                  leading: const Icon(Icons.language_rounded, color: AppTheme.primaryBlue),
+                  title: Text(l10n.language, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text(state.isArabic ? l10n.arabic : l10n.english),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () => _showLanguageSelector(context, state, isDark, l10n),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.dark_mode_outlined, color: AppTheme.purpleAmethyst),
+                  title: Text(l10n.darkMode, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text(isDark ? 'OLED Dark' : 'Light Mode'),
+                  value: state.isDarkMode,
+                  activeThumbColor: AppTheme.primaryBlue,
+                  onChanged: (_) => state.toggleTheme(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 2. Notifications Section
+            _buildSectionHeader(l10n.notifications, isDark),
+            const SizedBox(height: 10),
+            _buildCard(
+              isDark: isDark,
+              children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.notifications_active_outlined, color: AppTheme.emeraldGreen),
+                  title: Text(l10n.pushNotifications, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text(l10n.pushSubtitle),
+                  value: _pushNotifications,
+                  activeThumbColor: AppTheme.primaryBlue,
+                  onChanged: (val) => setState(() => _pushNotifications = val),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.sms_outlined, color: AppTheme.amberGold),
+                  title: Text(l10n.smsAlerts, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text(l10n.smsSubtitle),
+                  value: _smsNotifications,
+                  activeThumbColor: AppTheme.primaryBlue,
+                  onChanged: (val) => setState(() => _smsNotifications = val),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.email_outlined, color: AppTheme.primaryCyan),
+                  title: Text(l10n.emailReports, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text(l10n.emailSubtitle),
+                  value: _emailNotifications,
+                  activeThumbColor: AppTheme.primaryBlue,
+                  onChanged: (val) => setState(() => _emailNotifications = val),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 3. Storage Section
+            _buildSectionHeader(l10n.dataStorage, isDark),
+            const SizedBox(height: 10),
+            _buildCard(
+              isDark: isDark,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.cleaning_services_outlined, color: AppTheme.orangeSunset),
+                  title: Text(l10n.clearCache, style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                  subtitle: Text('${_cacheSize.toStringAsFixed(1)} MB ${l10n.cachedData}'),
+                  trailing: TextButton(
+                    onPressed: _cacheSize > 0 ? () => _simulateClearCache(l10n) : null,
+                    child: Text(
+                      l10n.clear,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: _cacheSize > 0 ? AppTheme.coralRed : Colors.grey,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          Switch(
-            value: value,
-            activeTrackColor: AppTheme.primaryBlue,
-            onChanged: onChanged,
-          ),
-        ],
+            const SizedBox(height: 24),
+
+            // 4. About & Version
+            Center(
+              child: Column(
+                children: [
+                  NexLabLogo(
+                    useFullLogo: true,
+                    height: 28,
+                    isWhite: isDark,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'NexLab Diagnostic v2.4.0 (2026)',
+                    style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isArabic ? 'بوابة التحاليل الطبية الرائدة في طرابلس، ليبيا' : 'Tripoli Medical Diagnostic Portal',
+                    style: TextStyle(fontSize: 11, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildActionRow({
-    required IconData icon,
-    required String title,
-    required String valueText,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(8),
+  Widget _buildSectionHeader(String title, bool isDark) {
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+        letterSpacing: 0.8,
+        fontFamily: 'Outfit',
+      ),
+    );
+  }
+
+  Widget _buildCard({required bool isDark, required List<Widget> children}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF161F30) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
         ),
-        child: Icon(icon, size: 18, color: isDark ? Colors.grey.shade300 : const Color(0xFF334155)),
+        boxShadow: AppTheme.cardShadow(isDark),
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          fontFamily: 'Outfit',
-          color: isDark ? Colors.white : const Color(0xFF0F172A),
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (valueText.isNotEmpty)
-            Text(
-              valueText,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-              ),
-            ),
-          const SizedBox(width: 6),
-          Icon(Icons.chevron_right, size: 18, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
-        ],
-      ),
+      child: Column(children: children),
     );
   }
 }

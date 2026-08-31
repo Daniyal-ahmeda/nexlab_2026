@@ -1,4 +1,4 @@
-﻿import 'entities.dart';
+import 'entities.dart';
 import 'repositories.dart';
 
 class LoginUseCase {
@@ -23,6 +23,7 @@ class RegisterUseCase {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) {
     return repository.register(
       name: name,
@@ -33,6 +34,7 @@ class RegisterUseCase {
       gender: gender,
       bloodGroup: bloodGroup,
       firebaseToken: firebaseToken,
+      phone: phone,
     );
   }
 }

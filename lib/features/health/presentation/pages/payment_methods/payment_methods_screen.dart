@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:nexlab_2026/core/l10n/app_localizations.dart';
@@ -30,17 +28,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   String _formatPhoneNumber(String rawPhone) {
     var phone = rawPhone.trim().replaceAll(RegExp(r'[\s\-]'), '');
     if (phone.startsWith('+')) return phone;
-    if (phone.startsWith('0')) {
-      phone = phone.substring(1);
-    }
+    if (phone.startsWith('0')) phone = phone.substring(1);
     return '+218$phone';
   }
 
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final list = state.paymentMethods;
 
@@ -51,8 +46,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             Text(
               l10n.libyanPaymentGateways,
               style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
                 fontFamily: 'Outfit',
               ),
             ),
@@ -72,7 +67,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryBlue),
+            icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryBlue),
             onPressed: () => _showAddMethodSheet(context, state, isDark),
           ),
           const SizedBox(width: 4),
@@ -80,106 +75,108 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Security tip card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                    width: 1,
-                  ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Security Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF161F30) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.security, color: AppTheme.emeraldGreen, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.securityTip,
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.4,
-                          color: isDark ? Colors.grey.shade300 : const Color(0xFF334155),
-                        ),
+                boxShadow: AppTheme.cardShadow(isDark),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.emeraldGreen.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.shield_outlined, color: AppTheme.emeraldGreen, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.securityTip,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: isDark ? Colors.grey.shade300 : const Color(0xFF334155),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Text(
-                l10n.yourPaymentMethods,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                  letterSpacing: 0.8,
-                  fontFamily: 'Outfit',
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Saved cards list with image logos
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: list.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final pm = list[index];
-                  return _buildPaymentCard(context, state, pm, isDark, l10n);
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Add Card button
-              OutlinedButton.icon(
-                onPressed: () => _showAddMethodSheet(context, state, isDark),
-                icon: const Icon(Icons.add, size: 16, color: AppTheme.primaryBlue),
-                label: Text(
-                  l10n.addNewGateway,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Outfit',
-                    color: AppTheme.primaryBlue,
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                  side: const BorderSide(color: AppTheme.primaryBlue, width: 1.2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 24),
 
-              // Supported local providers
-              Text(
-                l10n.supportedNetworks,
-                style: TextStyle(
-                  fontSize: 11,
+            // Saved Payment Gateways Header
+            Text(
+              l10n.yourPaymentMethods,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                letterSpacing: 0.8,
+                fontFamily: 'Outfit',
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final pm = list[index];
+                return _buildPaymentCard(context, state, pm, isDark, l10n);
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Add new gateway button
+            OutlinedButton.icon(
+              onPressed: () => _showAddMethodSheet(context, state, isDark),
+              icon: const Icon(Icons.add_rounded, size: 18, color: AppTheme.primaryBlue),
+              label: Text(
+                l10n.addNewGateway,
+                style: const TextStyle(
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                  letterSpacing: 0.8,
                   fontFamily: 'Outfit',
+                  color: AppTheme.primaryBlue,
                 ),
               ),
-              const SizedBox(height: 10),
-              _buildWeAcceptGrid(isDark, l10n),
-              const SizedBox(height: 30),
-            ],
-          ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                side: const BorderSide(color: AppTheme.primaryBlue),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Supported Libyan Networks Grid
+            Text(
+              l10n.supportedNetworks,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                letterSpacing: 0.8,
+                fontFamily: 'Outfit',
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildWeAcceptGrid(isDark, l10n),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
@@ -187,17 +184,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
   Widget _buildPaymentLogo(String type, {double size = 44}) {
     String assetPath = 'assets/edfaaly.jpg';
-    if (type.contains('Mobi')) {
-      assetPath = 'assets/Mobi.jpg';
-    } else if (type.contains('Sadad')) {
-      assetPath = 'assets/sadad.png';
-    } else if (type.contains('Tadawul') ||
-        type.contains('Sahel') ||
-        type.contains('Moamalat') ||
-        type.contains('Tyssir')) {
+    if (type.contains('Mobi')) assetPath = 'assets/Mobi.jpg';
+    if (type.contains('Sadad')) assetPath = 'assets/sadad.png';
+    if (type.contains('Tadawul') || type.contains('Sahel') || type.contains('Moamalat') || type.contains('Tyssir')) {
       assetPath = 'assets/tadawal.jpg';
-    } else if (type.contains('Cash')) {
-      assetPath = 'assets/payments/cash.png';
     }
 
     return Container(
@@ -206,169 +196,144 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(10),
         child: Image.asset(
           assetPath,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-              Icon(Icons.payment, size: size * 0.5, color: AppTheme.primaryBlue),
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Icon(Icons.account_balance_wallet_outlined, size: size * 0.5, color: AppTheme.primaryBlue),
         ),
       ),
     );
   }
 
-  Widget _buildPaymentCard(BuildContext context, AppState state, PaymentMethod pm,
-      bool isDark, AppLocalizations l10n) {
+  Widget _buildPaymentCard(BuildContext context, AppState state, PaymentMethod pm, bool isDark, AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: isDark ? const Color(0xFF161F30) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: pm.isDefault
-              ? AppTheme.primaryBlue
-              : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
-          width: pm.isDefault ? 1.5 : 1,
+              ? AppTheme.primaryBlue.withValues(alpha: 0.4)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
         ),
+        boxShadow: AppTheme.cardShadow(isDark),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              _buildPaymentLogo(pm.type, size: 44),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          _buildPaymentLogo(pm.type),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Text(
-                      '${pm.type} (${pm.number})',
+                      pm.type,
                       style: TextStyle(
                         fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         fontFamily: 'Outfit',
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      pm.expiry.isNotEmpty
-                          ? 'Expires ${pm.expiry}'
-                          : l10n.paymentsProcessedInLyd,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    if (pm.isDefault) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          l10n.defaultMethod,
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryBlue,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
-              ),
-              if (pm.isDefault)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                const SizedBox(height: 3),
+                Text(
+                  pm.number,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
-                  child: Text(
-                    l10n.defaultBadge,
-                    style: const TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryBlue,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppTheme.coralRed, size: 18),
-                  onPressed: () {
-                    state.deletePaymentMethod(pm.id);
-                  },
                 ),
+              ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, size: 20, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            onSelected: (action) {
+              if (action == 'default') state.setPaymentMethodAsDefault(pm.id);
+              if (action == 'delete') state.deletePaymentMethod(pm.id);
+            },
+            itemBuilder: (context) => [
+              if (!pm.isDefault)
+                PopupMenuItem(value: 'default', child: Text(l10n.setAsDefault)),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(l10n.deleteMethod, style: const TextStyle(color: AppTheme.coralRed)),
+              ),
             ],
           ),
-          if (!pm.isDefault) ...[
-            const SizedBox(height: 10),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => state.setPaymentMethodAsDefault(pm.id),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: Text(
-                  l10n.setAsPrimary,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryBlue,
-                    fontFamily: 'Outfit',
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
   Widget _buildWeAcceptGrid(bool isDark, AppLocalizations l10n) {
-    final providers = [
-      {'name': l10n.edfaaly, 'sub': 'Al-Madar', 'key': 'Edfaaly'},
-      {'name': l10n.mobiCash, 'sub': 'Wahda Bank', 'key': 'Mobi'},
-      {'name': l10n.sadad, 'sub': 'Libyana', 'key': 'Sadad'},
-      {'name': l10n.tyssir, 'sub': 'Jumhouria', 'key': 'Tyssir'},
-      {'name': l10n.moamalat, 'sub': 'Local Cards', 'key': 'Moamalat'},
-      {'name': l10n.cash, 'sub': 'On Visit', 'key': 'Cash'},
+    final gateways = [
+      {'name': l10n.gatewayEdfaaly, 'asset': 'assets/edfaaly.jpg'},
+      {'name': l10n.gatewayMobiCash, 'asset': 'assets/Mobi.jpg'},
+      {'name': l10n.gatewaySadad, 'asset': 'assets/sadad.png'},
+      {'name': l10n.gatewayTadawul, 'asset': 'assets/tadawal.jpg'},
     ];
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 1.6,
+        childAspectRatio: 2.6,
       ),
-      itemCount: providers.length,
+      itemCount: gateways.length,
       itemBuilder: (context, index) {
-        final item = providers[index];
+        final g = gateways[index];
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: isDark ? const Color(0xFF161F30) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              _buildPaymentLogo(item['key']!, size: 28),
-              const SizedBox(height: 6),
-              Text(
-                item['name']!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Outfit',
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              Text(
-                item['sub']!,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+              _buildPaymentLogo(g['name']!, size: 34),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  g['name']!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Outfit',
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
               ),
             ],
@@ -378,229 +343,135 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  void _showAddMethodSheet(BuildContext parentContext, AppState state, bool isDark) {
-    final l10n = AppLocalizations.of(parentContext);
-    bool isSendingOtp = false;
-
+  void _showAddMethodSheet(BuildContext context, AppState state, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
-      context: parentContext,
+      context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
+      backgroundColor: Colors.transparent,
+      builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Padding(
+            return Container(
               padding: EdgeInsets.only(
-                top: 24,
                 left: 20,
                 right: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.addPaymentTitle,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Outfit',
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF161F30) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 20),
-                          onPressed: () => Navigator.pop(sheetContext),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _methodType,
-                      decoration: _sheetInputDecoration(l10n.paymentNetwork, isDark),
-                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      items: [
-                        'Edfaaly',
-                        'Mobi Cash',
-                        'Sadad',
-                        'Tadawul',
-                        'Sahel',
-                        'Online Bank'
-                      ].map((m) {
-                        return DropdownMenuItem(
-                            value: m,
-                            child: Text(m, style: const TextStyle(fontSize: 13)));
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setSheetState(() => _methodType = val);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _numberController,
-                      keyboardType: TextInputType.phone,
-                      decoration:
-                          _sheetInputDecoration(l10n.accountOrPhone, isDark),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? l10n.required : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _expiryController,
-                      decoration:
-                          _sheetInputDecoration(l10n.expiryOptional, isDark),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 46,
-                      child: ElevatedButton(
-                        onPressed: isSendingOtp
-                            ? null
-                            : () async {
-                                if (!_formKey.currentState!.validate()) return;
-                                setSheetState(() => isSendingOtp = true);
-
-                                final formattedPhone = _formatPhoneNumber(
-                                    _numberController.text.trim());
-                                final targetType = _methodType;
-                                final targetNumber =
-                                    _numberController.text.trim();
-                                final targetExpiry =
-                                    _expiryController.text.trim();
-
-                                void openOtpScreen({String? verificationId}) {
-                                  setSheetState(() => isSendingOtp = false);
-                                  if (sheetContext.mounted) {
-                                    Navigator.pop(sheetContext); // Close sheet
-                                  }
-                                  if (parentContext.mounted) {
-                                    Navigator.push(
-                                      parentContext,
-                                      MaterialPageRoute(
-                                        builder: (_) => OtpScreen(
-                                          title: l10n.libyanPaymentGateways,
-                                          subtitle: l10n.otpPaymentSubtitle,
-                                          phoneNumber: formattedPhone,
-                                          verificationId: verificationId,
-                                          expectedCode: '123456',
-                                          onVerified: (firebaseToken) async {
-                                            if (parentContext.mounted) {
-                                              Navigator.pop(parentContext); // Pop OTP
-                                            }
-                                            await state.addPaymentMethod(
-                                              targetType,
-                                              targetNumber,
-                                              targetExpiry,
-                                              firebaseToken: firebaseToken,
-                                            );
-                                            _numberController.clear();
-                                            _expiryController.clear();
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-
-                                if (kIsWeb) {
-                                  openOtpScreen();
-                                  return;
-                                }
-
-                                try {
-                                  await FirebaseAuth.instance.verifyPhoneNumber(
-                                    phoneNumber: formattedPhone,
-                                    verificationCompleted:
-                                        (PhoneAuthCredential credential) async {
-                                      final userCred = await FirebaseAuth.instance
-                                          .signInWithCredential(credential);
-                                      final token =
-                                          await userCred.user?.getIdToken();
-                                      if (token != null) {
-                                        await state.addPaymentMethod(
-                                          targetType,
-                                          targetNumber,
-                                          targetExpiry,
-                                          firebaseToken: token,
-                                        );
-                                        _numberController.clear();
-                                        _expiryController.clear();
-                                        if (sheetContext.mounted) {
-                                          Navigator.pop(sheetContext);
-                                        }
-                                      }
-                                    },
-                                    verificationFailed: (FirebaseAuthException e) {
-                                      openOtpScreen();
-                                    },
-                                    codeSent: (String verificationId, int? resendToken) {
-                                      openOtpScreen(verificationId: verificationId);
-                                    },
-                                    codeAutoRetrievalTimeout: (String verificationId) {},
-                                  );
-                                } catch (e) {
-                                  openOtpScreen();
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: isSendingOtp
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : Text(
-                                l10n.verifySmsAndAdd,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Outfit',
-                                ),
-                              ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.addPaymentMethodTitle,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, fontFamily: 'Outfit'),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _methodType,
+                        decoration: InputDecoration(
+                          labelText: l10n.selectPaymentGateway,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        items: ['Edfaaly', 'Mobi Cash', 'Sadad', 'Tadawul', 'Sahel', 'Moamalat', 'Tyssir'].map((t) {
+                          return DropdownMenuItem(value: t, child: Text(t));
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) setSheetState(() => _methodType = val);
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      TextFormField(
+                        controller: _numberController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: l10n.walletOrCardNumber,
+                          hintText: '0912345678 / 0923456789',
+                          prefixIcon: const Icon(Icons.phone_android_rounded, size: 20),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (val) => val == null || val.trim().isEmpty ? l10n.enterAccountNumber : null,
+                      ),
+                      const SizedBox(height: 20),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              final phone = _formatPhoneNumber(_numberController.text);
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OtpScreen(
+                                    phoneNumber: phone,
+                                    title: '${l10n.verifyCode} - $_methodType',
+                                    subtitle: l10n.enterOtpSubtitle,
+                                    onVerified: (token) {
+                                      Navigator.pop(context);
+                                      state.addPaymentMethod(
+                                        _methodType,
+                                        _numberController.text.trim(),
+                                        '12/28',
+                                        firebaseToken: token,
+                                      );
+                                      _numberController.clear();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(l10n.paymentMethodAddedSuccess),
+                                          backgroundColor: AppTheme.emeraldGreen,
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.sms_outlined, size: 18),
+                          label: Text(
+                            l10n.verifyViaSmsAndAdd,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit'),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryBlue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
           },
         );
       },
-    );
-  }
-
-  InputDecoration _sheetInputDecoration(String label, bool isDark) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-      filled: true,
-      fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
-      ),
     );
   }
 }

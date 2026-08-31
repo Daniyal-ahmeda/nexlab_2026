@@ -1,4 +1,4 @@
-﻿import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/mock_database.dart';
@@ -15,6 +15,7 @@ abstract class AuthRemoteDataSource {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   });
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
@@ -59,6 +60,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) async {
     final response = await apiClient.post('/register', body: {
       'name': name,
@@ -68,6 +70,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'age': age,
       'gender': gender,
       'blood_group': bloodGroup,
+      'phone': phone,
       'firebase_token': firebaseToken,
     });
     final data = _extractData(response);
@@ -114,6 +117,7 @@ abstract class AuthMockDataSource {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   });
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
@@ -150,6 +154,7 @@ class AuthMockDataSourceImpl implements AuthMockDataSource {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) async {
     await _delay();
     db.currentUser = UserModel(
@@ -224,6 +229,7 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(

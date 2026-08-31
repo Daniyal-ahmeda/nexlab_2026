@@ -1,4 +1,4 @@
-﻿import '../../../core/errors/failures.dart';
+import '../../../core/errors/failures.dart';
 import '../domain/entities.dart';
 import '../domain/repositories.dart';
 import 'datasources.dart';
@@ -35,14 +35,6 @@ class HealthRepositoryImpl implements HealthRepository {
     return _execute(
       () => remoteDataSource.getResults().then((list) => list.map((e) => e as TestResult).toList()),
       () => mockDataSource.getResults().then((list) => list.map((e) => e as TestResult).toList()),
-    );
-  }
-
-  @override
-  Future<void> uploadPrescription(String filePath) {
-    return _execute(
-      () => remoteDataSource.uploadPrescription(filePath),
-      () => mockDataSource.uploadPrescription(filePath),
     );
   }
 

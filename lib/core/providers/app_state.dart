@@ -36,7 +36,6 @@ class AppState extends ChangeNotifier {
   late final CancelBookingUseCase _cancelBookingUseCase;
 
   late final GetResultsUseCase _getResultsUseCase;
-  late final UploadPrescriptionUseCase _uploadPrescriptionUseCase;
   late final GetFamilyMembersUseCase _getFamilyMembersUseCase;
   late final AddFamilyMemberUseCase _addFamilyMemberUseCase;
   late final DeleteFamilyMemberUseCase _deleteFamilyMemberUseCase;
@@ -48,6 +47,14 @@ class AppState extends ChangeNotifier {
   // Core visual & localization state
   bool _isDarkMode = false;
   bool get isDarkMode => _isDarkMode;
+
+  bool _hasSeenOnboarding = false;
+  bool get hasSeenOnboarding => _hasSeenOnboarding;
+
+  void completeOnboarding() {
+    _hasSeenOnboarding = true;
+    notifyListeners();
+  }
 
   Locale _locale = const Locale('ar');
   Locale get locale => _locale;
@@ -69,6 +76,13 @@ class AppState extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  // Concurrency & Race Condition Guards
+  int _fetchSequence = 0;
+  bool _isSubmittingBooking = false;
+  bool _isSubmittingAuth = false;
+  bool _isSubmittingFamily = false;
+  bool _isSubmittingPayment = false;
 
   // Cached Domain Data
   List<DiagnosticTest> _allTests = [];
@@ -94,9 +108,6 @@ class AppState extends ChangeNotifier {
 
   List<DiagnosticTest> _favorites = [];
   List<DiagnosticTest> get favorites => _favorites;
-
-  final List<String> _uploadedPrescriptions = [];
-  List<String> get uploadedPrescriptions => _uploadedPrescriptions;
 
   // In-app notification banners (from FCM foreground messages)
   final List<Map<String, String>> _notifications = [];
@@ -147,7 +158,6 @@ class AppState extends ChangeNotifier {
     _cancelBookingUseCase = CancelBookingUseCase(bookingRepository);
 
     _getResultsUseCase = GetResultsUseCase(healthRepository);
-    _uploadPrescriptionUseCase = UploadPrescriptionUseCase(healthRepository);
     _getFamilyMembersUseCase = GetFamilyMembersUseCase(healthRepository);
     _addFamilyMemberUseCase = AddFamilyMemberUseCase(healthRepository);
     _deleteFamilyMemberUseCase = DeleteFamilyMemberUseCase(healthRepository);
@@ -188,7 +198,6 @@ class AppState extends ChangeNotifier {
       // User tapped a notification from background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         _addNotification(message);
-        // Refresh results so new one appears immediately
         refreshResults();
       });
     } catch (e) {
@@ -251,11 +260,14 @@ class AppState extends ChangeNotifier {
     );
   }
 
-  /// Pull fresh results from API ï¿½ useful after a push notification arrives.
+  /// Pull fresh results from API - useful after a push notification arrives.
   Future<void> refreshResults() async {
     try {
-      _results = await _getResultsUseCase();
-      notifyListeners();
+      final res = await _getResultsUseCase();
+      if (res.isNotEmpty) {
+        _results = res;
+        notifyListeners();
+      }
     } catch (_) {}
   }
 
@@ -278,56 +290,80 @@ class AppState extends ChangeNotifier {
     await loadInitialData();
   }
 
+  /// RACE CONDITION PROTECTED INITIAL DATA LOADER
+  /// Uses monotonic fetch sequence tokens to guarantee that out-of-order responses
+  /// from stale network requests are discarded and cannot overwrite newer data.
   Future<void> loadInitialData() async {
+    final int currentSeq = ++_fetchSequence;
     _setLoading(true);
     _setError(null);
 
+    List<DiagnosticTest>? tests;
+    List<LabOption>? labs;
+    User? user;
+    List<Booking>? bookings;
+    List<TestResult>? results;
+    List<FamilyMember>? family;
+    List<PaymentMethod>? paymentMethods;
+
     try {
-      _allTests = await _getTestsUseCase();
+      tests = await _getTestsUseCase();
     } catch (e) {
       debugPrint('Error fetching tests: $e');
     }
 
     try {
-      _allLabs = await _getLabsUseCase();
+      labs = await _getLabsUseCase();
     } catch (e) {
       debugPrint('Error fetching labs: $e');
     }
 
     try {
-      final user = await _getCurrentUserUseCase();
+      user = await _getCurrentUserUseCase();
       if (user != null) {
-        _currentUser = user;
-
         try {
-          _bookings = await _getBookingsUseCase();
+          bookings = await _getBookingsUseCase();
         } catch (e) {
           debugPrint('Error fetching bookings: $e');
         }
 
         try {
-          _results = await _getResultsUseCase();
+          results = await _getResultsUseCase();
         } catch (e) {
           debugPrint('Error fetching results: $e');
         }
 
         try {
-          _familyMembers = await _getFamilyMembersUseCase();
+          family = await _getFamilyMembersUseCase();
         } catch (e) {
           debugPrint('Error fetching family members: $e');
         }
 
         try {
-          _paymentMethods = await _getPaymentMethodsUseCase();
+          paymentMethods = await _getPaymentMethodsUseCase();
         } catch (e) {
           debugPrint('Error fetching payment methods: $e');
         }
       }
     } catch (_) {
-      // Session not active on fresh startup, user will log in
+      // Session not active on fresh startup
     }
 
-    if (_allTests.isNotEmpty) {
+    // RACE CONDITION CHECK: If another fetch was triggered while this one was in-flight, discard this stale batch!
+    if (currentSeq != _fetchSequence) {
+      debugPrint('Discarded stale fetch sequence ($currentSeq vs $_fetchSequence)');
+      return;
+    }
+
+    if (tests != null && tests.isNotEmpty) _allTests = tests;
+    if (labs != null && labs.isNotEmpty) _allLabs = labs;
+    if (user != null) _currentUser = user;
+    if (bookings != null) _bookings = bookings;
+    if (results != null) _results = results;
+    if (family != null) _familyMembers = family;
+    if (paymentMethods != null) _paymentMethods = paymentMethods;
+
+    if (_allTests.isNotEmpty && _favorites.isEmpty) {
       _favorites = [
         if (_allTests.length > 1) _allTests[1],
         if (_allTests.isNotEmpty) _allTests[0],
@@ -357,8 +393,10 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Family Operations
+  // Family Operations (Guarded against double-submit race condition)
   Future<void> addFamilyMember(String name, String relationship, int age, String gender, String bloodGroup) async {
+    if (_isSubmittingFamily) return;
+    _isSubmittingFamily = true;
     _setLoading(true);
     _setError(null);
     try {
@@ -373,6 +411,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError(e.toString());
     } finally {
+      _isSubmittingFamily = false;
       _setLoading(false);
     }
   }
@@ -390,8 +429,10 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // Payment Operations
+  // Payment Operations (Guarded against double-submit race condition)
   Future<void> addPaymentMethod(String type, String number, String expiry, {required String firebaseToken}) async {
+    if (_isSubmittingPayment) return;
+    _isSubmittingPayment = true;
     _setLoading(true);
     _setError(null);
     try {
@@ -405,6 +446,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError(e.toString());
     } finally {
+      _isSubmittingPayment = false;
       _setLoading(false);
     }
   }
@@ -446,20 +488,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // Prescription Upload Simulation
-  Future<void> uploadPrescription(String path) async {
-    _setLoading(true);
-    _setError(null);
-    try {
-      await _uploadPrescriptionUseCase(path);
-      _uploadedPrescriptions.add(path);
-    } catch (e) {
-      _setError(e.toString());
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   // Booking Checkout Flow
   void startBooking(DiagnosticTest test) {
     selectedTest = test;
@@ -470,9 +498,16 @@ class AppState extends ChangeNotifier {
     isHomeCollection = false;
   }
 
+  /// Concurrency Guarded Booking Confirmation
+  /// Prevents double-tap race conditions from generating duplicate bookings on the backend.
   Future<Booking> confirmBooking() async {
+    if (_isSubmittingBooking) {
+      throw Exception('A booking submission is already in progress.');
+    }
+    _isSubmittingBooking = true;
     _setLoading(true);
     _setError(null);
+
     try {
       final bookingId = 'NXL${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       final patientObj = selectedPatient ??
@@ -508,6 +543,7 @@ class AppState extends ChangeNotifier {
       _setError(e.toString());
       rethrow;
     } finally {
+      _isSubmittingBooking = false;
       _setLoading(false);
     }
   }
@@ -530,8 +566,10 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // Authentication Flow
+  // Authentication Flow (Guarded against double-submit race condition)
   Future<void> login(String email, String password) async {
+    if (_isSubmittingAuth) return;
+    _isSubmittingAuth = true;
     _setLoading(true);
     _setError(null);
     try {
@@ -541,6 +579,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       _setError(e.toString());
     } finally {
+      _isSubmittingAuth = false;
       _setLoading(false);
     }
   }
@@ -554,7 +593,10 @@ class AppState extends ChangeNotifier {
     required String gender,
     required String bloodGroup,
     required String firebaseToken,
+    String? phone,
   }) async {
+    if (_isSubmittingAuth) return;
+    _isSubmittingAuth = true;
     _setLoading(true);
     _setError(null);
     try {
@@ -567,12 +609,14 @@ class AppState extends ChangeNotifier {
         gender: gender,
         bloodGroup: bloodGroup,
         firebaseToken: firebaseToken,
+        phone: phone,
       );
       await loadInitialData();
       if (_apiClient != null) unawaited(initFcm(_apiClient!));
     } catch (e) {
       _setError(e.toString());
     } finally {
+      _isSubmittingAuth = false;
       _setLoading(false);
     }
   }
@@ -594,5 +638,3 @@ class AppState extends ChangeNotifier {
     }
   }
 }
-
-

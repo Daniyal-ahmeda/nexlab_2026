@@ -39,8 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
+      if (!mounted) return;
+
       if (state.errorMessage != null) {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(state.errorMessage!),
@@ -49,8 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.initial);
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -106,12 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo + Title block
-                  const NexLabLogo(
-                    showText: true,
-                    size: 38,
+                  NexLabLogo(
+                    useFullLogo: true,
+                    height: 42,
+                    isWhite: isDark,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     l10n.appSubtitle,
                     style: TextStyle(
