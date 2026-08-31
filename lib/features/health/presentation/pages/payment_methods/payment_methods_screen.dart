@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
+import 'package:nexlab_2026/features/auth/presentation/pages/otp/otp_screen.dart';
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
@@ -23,27 +27,37 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     super.dispose();
   }
 
+  String _formatPhoneNumber(String rawPhone) {
+    var phone = rawPhone.trim().replaceAll(RegExp(r'[\s\-]'), '');
+    if (phone.startsWith('+')) return phone;
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    }
+    return '+218$phone';
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final list = state.paymentMethods;
 
     return Scaffold(
       appBar: AppBar(
         title: Column(
           children: [
-            const Text(
-              'Libyan Payment Gateways',
-              style: TextStyle(
+            Text(
+              l10n.libyanPaymentGateways,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Outfit',
               ),
             ),
             Text(
-              'All payments processed in LYD',
+              l10n.paymentsProcessedInLyd,
               style: TextStyle(
                 fontSize: 11.5,
                 color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -89,7 +103,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Direct integration with Libyan local payment services (Edfaaly, Sadad, Mobi, Local Cards). Settled instantly in LYD.',
+                        l10n.securityTip,
                         style: TextStyle(
                           fontSize: 12,
                           height: 1.4,
@@ -103,7 +117,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               const SizedBox(height: 24),
 
               Text(
-                'YOUR PAYMENT METHODS',
+                l10n.yourPaymentMethods,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -122,7 +136,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final pm = list[index];
-                  return _buildPaymentCard(context, state, pm, isDark);
+                  return _buildPaymentCard(context, state, pm, isDark, l10n);
                 },
               ),
               const SizedBox(height: 20),
@@ -131,9 +145,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               OutlinedButton.icon(
                 onPressed: () => _showAddMethodSheet(context, state, isDark),
                 icon: const Icon(Icons.add, size: 16, color: AppTheme.primaryBlue),
-                label: const Text(
-                  'Add New Libyan Payment Gateway',
-                  style: TextStyle(
+                label: Text(
+                  l10n.addNewGateway,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Outfit',
@@ -152,7 +166,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
               // Supported local providers
               Text(
-                'SUPPORTED LIBYAN NETWORKS',
+                l10n.supportedNetworks,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -162,7 +176,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              _buildWeAcceptGrid(isDark),
+              _buildWeAcceptGrid(isDark, l10n),
               const SizedBox(height: 30),
             ],
           ),
@@ -177,7 +191,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       assetPath = 'assets/Mobi.jpg';
     } else if (type.contains('Sadad')) {
       assetPath = 'assets/sadad.png';
-    } else if (type.contains('Tadawul') || type.contains('Sahel') || type.contains('Moamalat') || type.contains('Tyssir')) {
+    } else if (type.contains('Tadawul') ||
+        type.contains('Sahel') ||
+        type.contains('Moamalat') ||
+        type.contains('Tyssir')) {
       assetPath = 'assets/tadawal.jpg';
     } else if (type.contains('Cash')) {
       assetPath = 'assets/payments/cash.png';
@@ -196,13 +213,15 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         child: Image.asset(
           assetPath,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Icon(Icons.payment, size: size * 0.5, color: AppTheme.primaryBlue),
+          errorBuilder: (context, error, stackTrace) =>
+              Icon(Icons.payment, size: size * 0.5, color: AppTheme.primaryBlue),
         ),
       ),
     );
   }
 
-  Widget _buildPaymentCard(BuildContext context, AppState state, PaymentMethod pm, bool isDark) {
+  Widget _buildPaymentCard(BuildContext context, AppState state, PaymentMethod pm,
+      bool isDark, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -236,7 +255,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      pm.expiry.isNotEmpty ? 'Expires ${pm.expiry}' : 'Libyan Mobile Gateway',
+                      pm.expiry.isNotEmpty
+                          ? 'Expires ${pm.expiry}'
+                          : l10n.paymentsProcessedInLyd,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -252,9 +273,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'DEFAULT',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.defaultBadge,
+                    style: const TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.primaryBlue,
@@ -277,11 +298,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => state.setPaymentMethodAsDefault(pm.id),
-              child: const Align(
-                alignment: Alignment.centerRight,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
                 child: Text(
-                  'Set as Primary Payment Method',
-                  style: TextStyle(
+                  l10n.setAsPrimary,
+                  style: const TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.primaryBlue,
@@ -296,14 +317,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  Widget _buildWeAcceptGrid(bool isDark) {
+  Widget _buildWeAcceptGrid(bool isDark, AppLocalizations l10n) {
     final providers = [
-      {'name': 'Edfaaly', 'sub': 'Al-Madar', 'key': 'Edfaaly'},
-      {'name': 'Mobi Cash', 'sub': 'Wahda Bank', 'key': 'Mobi'},
-      {'name': 'Sadad', 'sub': 'Libyana', 'key': 'Sadad'},
-      {'name': 'Tyssir', 'sub': 'Jumhouria', 'key': 'Tyssir'},
-      {'name': 'Moamalat', 'sub': 'Local Cards', 'key': 'Moamalat'},
-      {'name': 'Cash', 'sub': 'On Visit', 'key': 'Cash'},
+      {'name': l10n.edfaaly, 'sub': 'Al-Madar', 'key': 'Edfaaly'},
+      {'name': l10n.mobiCash, 'sub': 'Wahda Bank', 'key': 'Mobi'},
+      {'name': l10n.sadad, 'sub': 'Libyana', 'key': 'Sadad'},
+      {'name': l10n.tyssir, 'sub': 'Jumhouria', 'key': 'Tyssir'},
+      {'name': l10n.moamalat, 'sub': 'Local Cards', 'key': 'Moamalat'},
+      {'name': l10n.cash, 'sub': 'On Visit', 'key': 'Cash'},
     ];
 
     return GridView.builder(
@@ -334,6 +355,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               const SizedBox(height: 6),
               Text(
                 item['name']!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
@@ -355,15 +378,18 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  void _showAddMethodSheet(BuildContext context, AppState state, bool isDark) {
+  void _showAddMethodSheet(BuildContext parentContext, AppState state, bool isDark) {
+    final l10n = AppLocalizations.of(parentContext);
+    bool isSendingOtp = false;
+
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
@@ -382,9 +408,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Add Libyan Payment Method',
-                          style: TextStyle(
+                        Text(
+                          l10n.addPaymentTitle,
+                          style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             fontFamily: 'Outfit',
@@ -392,17 +418,26 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, size: 20),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: _methodType,
-                      decoration: _sheetInputDecoration('Payment Network', isDark),
+                      decoration: _sheetInputDecoration(l10n.paymentNetwork, isDark),
                       dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      items: ['Edfaaly', 'Mobi Cash', 'Sadad', 'Tadawul', 'Sahel', 'Online Bank'].map((m) {
-                        return DropdownMenuItem(value: m, child: Text(m, style: const TextStyle(fontSize: 13)));
+                      items: [
+                        'Edfaaly',
+                        'Mobi Cash',
+                        'Sadad',
+                        'Tadawul',
+                        'Sahel',
+                        'Online Bank'
+                      ].map((m) {
+                        return DropdownMenuItem(
+                            value: m,
+                            child: Text(m, style: const TextStyle(fontSize: 13)));
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) setSheetState(() => _methodType = val);
@@ -412,36 +447,133 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     TextFormField(
                       controller: _numberController,
                       keyboardType: TextInputType.phone,
-                      decoration: _sheetInputDecoration('Mobile / Account Number (e.g. 091-XXXXXXX)', isDark),
-                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                      decoration:
+                          _sheetInputDecoration(l10n.accountOrPhone, isDark),
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? l10n.required : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _expiryController,
-                      decoration: _sheetInputDecoration('Expiry (MM/YY, optional)', isDark),
+                      decoration:
+                          _sheetInputDecoration(l10n.expiryOptional, isDark),
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (!_formKey.currentState!.validate()) return;
-                          state.addPaymentMethod(
-                            _methodType,
-                            _numberController.text.trim(),
-                            _expiryController.text.trim(),
-                          );
-                          _numberController.clear();
-                          _expiryController.clear();
-                          Navigator.pop(context);
-                        },
+                        onPressed: isSendingOtp
+                            ? null
+                            : () async {
+                                if (!_formKey.currentState!.validate()) return;
+                                setSheetState(() => isSendingOtp = true);
+
+                                final formattedPhone = _formatPhoneNumber(
+                                    _numberController.text.trim());
+                                final targetType = _methodType;
+                                final targetNumber =
+                                    _numberController.text.trim();
+                                final targetExpiry =
+                                    _expiryController.text.trim();
+
+                                void openOtpScreen({String? verificationId}) {
+                                  setSheetState(() => isSendingOtp = false);
+                                  if (sheetContext.mounted) {
+                                    Navigator.pop(sheetContext); // Close sheet
+                                  }
+                                  if (parentContext.mounted) {
+                                    Navigator.push(
+                                      parentContext,
+                                      MaterialPageRoute(
+                                        builder: (_) => OtpScreen(
+                                          title: l10n.libyanPaymentGateways,
+                                          subtitle: l10n.otpPaymentSubtitle,
+                                          phoneNumber: formattedPhone,
+                                          verificationId: verificationId,
+                                          expectedCode: '123456',
+                                          onVerified: (firebaseToken) async {
+                                            if (parentContext.mounted) {
+                                              Navigator.pop(parentContext); // Pop OTP
+                                            }
+                                            await state.addPaymentMethod(
+                                              targetType,
+                                              targetNumber,
+                                              targetExpiry,
+                                              firebaseToken: firebaseToken,
+                                            );
+                                            _numberController.clear();
+                                            _expiryController.clear();
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+
+                                if (kIsWeb) {
+                                  openOtpScreen();
+                                  return;
+                                }
+
+                                try {
+                                  await FirebaseAuth.instance.verifyPhoneNumber(
+                                    phoneNumber: formattedPhone,
+                                    verificationCompleted:
+                                        (PhoneAuthCredential credential) async {
+                                      final userCred = await FirebaseAuth.instance
+                                          .signInWithCredential(credential);
+                                      final token =
+                                          await userCred.user?.getIdToken();
+                                      if (token != null) {
+                                        await state.addPaymentMethod(
+                                          targetType,
+                                          targetNumber,
+                                          targetExpiry,
+                                          firebaseToken: token,
+                                        );
+                                        _numberController.clear();
+                                        _expiryController.clear();
+                                        if (sheetContext.mounted) {
+                                          Navigator.pop(sheetContext);
+                                        }
+                                      }
+                                    },
+                                    verificationFailed: (FirebaseAuthException e) {
+                                      openOtpScreen();
+                                    },
+                                    codeSent: (String verificationId, int? resendToken) {
+                                      openOtpScreen(verificationId: verificationId);
+                                    },
+                                    codeAutoRetrievalTimeout: (String verificationId) {},
+                                  );
+                                } catch (e) {
+                                  openOtpScreen();
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryBlue,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: const Text('Add Payment Method', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Outfit')),
+                        child: isSendingOtp
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : Text(
+                                l10n.verifySmsAndAdd,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Outfit',
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -457,13 +589,17 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   InputDecoration _sheetInputDecoration(String label, bool isDark) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+      labelStyle: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
       filled: true,
       fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
+        borderSide: BorderSide(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
       ),
     );
   }

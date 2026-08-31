@@ -6,6 +6,7 @@ import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/test_details/test_details_screen.dart';
 import 'package:nexlab_2026/features/health/presentation/pages/family_members/family_members_screen.dart';
 import 'package:nexlab_2026/features/health/presentation/pages/upload_prescription/upload_prescription_screen.dart';
+import 'package:nexlab_2026/features/health/presentation/pages/results/results_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -272,27 +273,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 20,
                   color: isDark ? Colors.grey.shade300 : const Color(0xFF334155),
                 ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('All notifications caught up.'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
+                onPressed: () => _showNotificationsModal(context, state, isDark),
               ),
-              Positioned(
-                right: 9,
-                top: 9,
-                child: Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.emeraldGreen,
-                    shape: BoxShape.circle,
+              if (state.unreadNotificationCount > 0 || state.results.isNotEmpty)
+                Positioned(
+                  right: 7,
+                  top: 7,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.emeraldGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 8,
+                      minHeight: 8,
+                    ),
                   ),
-                ),
-              )
+                )
             ],
           ),
         ),
@@ -1029,5 +1027,248 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
+  void _showNotificationsModal(BuildContext context, AppState state, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        // Collect combined notifications: FCM notifications + latest lab reports
+        final fcmNotifs = state.notifications;
+        final latestResults = state.results;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.65,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Top drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.notifications_active_rounded, color: AppTheme.primaryBlue, size: 22),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Notifications',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'Outfit',
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (fcmNotifs.isNotEmpty)
+                      TextButton(
+                        onPressed: () {
+                          state.markAllNotificationsRead();
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text(
+                          'Mark all read',
+                          style: TextStyle(fontSize: 12, color: AppTheme.primaryBlue),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Notifications list
+              Expanded(
+                child: (fcmNotifs.isEmpty && latestResults.isEmpty)
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.notifications_none_rounded,
+                              size: 48,
+                              color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No new notifications',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'You will be notified when your test results are published.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.grey.shade600 : Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        children: [
+                          // Push Notifications received live
+                          for (int i = 0; i < fcmNotifs.length; i++) ...[
+                            _buildNotificationItem(
+                              context: context,
+                              isDark: isDark,
+                              title: fcmNotifs[i]['title'] ?? 'Lab Result Ready',
+                              body: fcmNotifs[i]['body'] ?? '',
+                              isUnread: fcmNotifs[i]['read'] != 'true',
+                              onTap: () {
+                                state.markNotificationRead(i);
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ResultsScreen()),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          // If there are results in state, show them as report notifications
+                          for (final res in latestResults) ...[
+                            _buildNotificationItem(
+                              context: context,
+                              isDark: isDark,
+                              title: 'Diagnostic Report: ${res.test.name}',
+                              body: 'Official report published by ${res.labName}. Tap to view biomarker measurements.',
+                              isUnread: false,
+                              icon: Icons.assignment_turned_in_rounded,
+                              iconColor: AppTheme.emeraldGreen,
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ResultsScreen()),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationItem({
+    required BuildContext context,
+    required bool isDark,
+    required String title,
+    required String body,
+    required bool isUnread,
+    IconData icon = Icons.medical_services_rounded,
+    Color iconColor = AppTheme.primaryBlue,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isUnread
+              ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF))
+              : (isDark ? const Color(0xFF131D2E) : Colors.grey.shade50),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isUnread
+                ? AppTheme.primaryBlue.withValues(alpha: 0.4)
+                : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: isUnread ? FontWeight.w800 : FontWeight.w700,
+                            fontFamily: 'Outfit',
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      if (isUnread)
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryBlue,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    body,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+}

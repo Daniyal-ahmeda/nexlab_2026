@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:nexlab_2026/core/l10n/app_localizations.dart';
+import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/home/home_screen.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/bookings/bookings_screen.dart';
 import 'package:nexlab_2026/features/booking/presentation/pages/favorites/favorites_screen.dart';
@@ -32,6 +35,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final state = Provider.of<AppState>(context);
+    final l10n = AppLocalizations.of(context);
     
     return Scaffold(
       body: SafeArea(
@@ -72,10 +77,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(0, Icons.home_filled, Icons.home_outlined, 'Home'),
-            _buildNavItem(1, Icons.calendar_month, Icons.calendar_month_outlined, 'Bookings'),
-            _buildNavItem(2, Icons.favorite, Icons.favorite_border, 'Favorites'),
-            _buildNavItem(3, Icons.person, Icons.person_outline, 'Profile'),
+            _buildNavItem(0, Icons.home_filled, Icons.home_outlined, l10n.navHome),
+            _buildNavItem(1, Icons.calendar_month, Icons.calendar_month_outlined, l10n.navBookings),
+            _buildNavItem(2, Icons.favorite, Icons.favorite_border, state.isArabic ? 'المفضلة' : 'Favorites'),
+            _buildNavItem(3, Icons.person, Icons.person_outline, l10n.navProfile),
           ],
         ),
       ),

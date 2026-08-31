@@ -5,8 +5,21 @@ import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/features/health/presentation/pages/result_details/result_details_screen.dart';
 
-class ResultsScreen extends StatelessWidget {
+class ResultsScreen extends StatefulWidget {
   const ResultsScreen({super.key});
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppState>(context, listen: false).refreshResults();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,77 +43,100 @@ class ResultsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => state.refreshResults(),
+            tooltip: 'Refresh Reports',
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Test Results',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontFamily: 'Outfit',
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                '${list.length} official diagnostic lab report${list.length == 1 ? '' : 's'} available',
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 20),
-
-              if (list.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 72),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.assignment_outlined,
-                          size: 44,
-                          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No diagnostic reports yet',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Outfit',
-                            color: isDark ? Colors.grey.shade400 : const Color(0xFF374151),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Once your lab samples are processed, official\nreports will appear here.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
+      body: RefreshIndicator(
+        onRefresh: () => state.refreshResults(),
+        color: AppTheme.primaryBlue,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Test Results',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Outfit',
+                    letterSpacing: -0.5,
                   ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: list.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final result = list[index];
-                    return _buildResultCard(context, result, theme, isDark);
-                  },
                 ),
-              const SizedBox(height: 30),
-            ],
+                const SizedBox(height: 3),
+                Text(
+                  '${list.length} official diagnostic lab report${list.length == 1 ? '' : 's'} available',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 20),
+
+                if (list.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 72),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.assignment_outlined,
+                            size: 44,
+                            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No diagnostic reports yet',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Outfit',
+                              color: isDark ? Colors.grey.shade400 : const Color(0xFF374151),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Once your lab samples are processed, official\nreports will appear here.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          OutlinedButton.icon(
+                            onPressed: () => state.refreshResults(),
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text('Check for Updates'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.primaryBlue,
+                              side: const BorderSide(color: AppTheme.primaryBlue),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: list.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final result = list[index];
+                      return _buildResultCard(context, result, theme, isDark);
+                    },
+                  ),
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),
@@ -226,15 +262,15 @@ class ResultsScreen extends StatelessWidget {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Downloading official PDF report...'),
-                                  behavior: SnackBarBehavior.floating,
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ResultDetailsScreen(result: result),
                                 ),
                               );
                             },
                             icon: const Icon(Icons.download_outlined, size: 14),
-                            label: const Text('Download PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                            label: const Text('View / Download PDF', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: isDark ? Colors.grey.shade300 : const Color(0xFF334155),
                               side: BorderSide(
@@ -282,4 +318,3 @@ class ResultsScreen extends StatelessWidget {
     );
   }
 }
-

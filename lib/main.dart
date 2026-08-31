@@ -1,8 +1,12 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/constants/api_constants.dart';
 import 'core/network/api_client.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'core/notifications/notification_config.dart';
 import 'core/providers/app_state.dart';
 import 'features/auth/data/datasources.dart';
 import 'features/auth/data/repositories.dart';
@@ -10,13 +14,17 @@ import 'features/booking/data/datasources.dart';
 import 'features/booking/data/repositories.dart';
 import 'features/health/data/datasources.dart';
 import 'features/health/data/repositories.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'app.dart';
 
-void main() async {
+/// Background message handler -- must be top-level (not inside a class)
+@pragma('vm:entry-point')
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase (reads google-services.json on Android / iOS)
   if (!kIsWeb) {
     try {
       await Firebase.initializeApp();
@@ -25,10 +33,21 @@ void main() async {
     }
   }
 
-  // Clean Architecture Bootstrapping (Feature-First)
+  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+
+  await localNotifications
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(resultChannel);
+
+  await localNotifications.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+  );
+
   final apiClient = ApiClient(baseUrl: ApiConstants.baseUrl);
 
-  // Auth feature dependencies (Powered by Laravel REST API)
   final authRemote = AuthRemoteDataSourceImpl(apiClient);
   final authMock = AuthMockDataSourceImpl();
   final authRepository = AuthRepositoryImpl(
@@ -37,7 +56,6 @@ void main() async {
     useRemote: true,
   );
 
-  // Booking feature dependencies
   final bookingRemote = BookingRemoteDataSourceImpl(apiClient);
   final bookingMock = BookingMockDataSourceImpl();
   final bookingRepository = BookingRepositoryImpl(
@@ -46,7 +64,6 @@ void main() async {
     useRemote: true,
   );
 
-  // Health feature dependencies
   final healthRemote = HealthRemoteDataSourceImpl(apiClient);
   final healthMock = HealthMockDataSourceImpl();
   final healthRepository = HealthRepositoryImpl(
@@ -61,6 +78,7 @@ void main() async {
         authRepository: authRepository,
         bookingRepository: bookingRepository,
         healthRepository: healthRepository,
+        apiClient: apiClient,
       ),
       child: const MyApp(),
     ),

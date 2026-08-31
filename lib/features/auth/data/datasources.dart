@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/mock_database.dart';
@@ -14,6 +14,7 @@ abstract class AuthRemoteDataSource {
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   });
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
@@ -57,6 +58,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   }) async {
     final response = await apiClient.post('/register', body: {
       'name': name,
@@ -66,6 +68,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'age': age,
       'gender': gender,
       'blood_group': bloodGroup,
+      'firebase_token': firebaseToken,
     });
     final data = _extractData(response);
     final userJson = data.containsKey('user') ? data['user'] : data;
@@ -105,10 +108,12 @@ abstract class AuthMockDataSource {
   Future<UserModel> register({
     required String name,
     required String email,
+    required String password,
     required String relationship,
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   });
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
@@ -139,10 +144,12 @@ class AuthMockDataSourceImpl implements AuthMockDataSource {
   Future<UserModel> register({
     required String name,
     required String email,
+    required String password,
     required String relationship,
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   }) async {
     await _delay();
     db.currentUser = UserModel(
@@ -216,6 +223,7 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -271,4 +279,3 @@ class AuthFirebaseDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 }
-

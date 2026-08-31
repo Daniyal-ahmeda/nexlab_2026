@@ -1,4 +1,4 @@
-import '../../../core/errors/failures.dart';
+﻿import '../../../core/errors/failures.dart';
 import '../domain/entities.dart';
 import '../domain/repositories.dart';
 import 'datasources.dart';
@@ -101,17 +101,20 @@ class HealthRepositoryImpl implements HealthRepository {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   }) {
     return _execute(
       () => remoteDataSource.addPaymentMethod(
         type: type,
         number: number,
         expiry: expiry,
+        firebaseToken: firebaseToken,
       ).then((e) => e as PaymentMethod),
       () => mockDataSource.addPaymentMethod(
         type: type,
         number: number,
         expiry: expiry,
+        firebaseToken: firebaseToken,
       ).then((e) => e as PaymentMethod),
     );
   }
@@ -132,3 +135,4 @@ class HealthRepositoryImpl implements HealthRepository {
     );
   }
 }
+

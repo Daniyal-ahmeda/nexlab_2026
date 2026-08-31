@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../domain/entities.dart';
 import '../../booking/data/models.dart';
 
@@ -103,20 +104,51 @@ class TestResultModel extends TestResult {
     required super.reportDate,
     required super.status,
     required super.parameters,
+    super.pdfUrl,
   });
 
   factory TestResultModel.fromJson(Map<String, dynamic> json) {
-    final paramsJson = json['parameters'] as List? ?? [];
-    final params = paramsJson.map((p) => ResultParameterModel.fromJson(p)).toList();
+    final rawParams = (json['parameters'] ?? json['biomarkers']) as List? ?? [];
+    final params = rawParams
+        .whereType<Map<String, dynamic>>()
+        .map((p) => ResultParameterModel.fromJson(p))
+        .toList();
+
+    final rawTest = json['test'] ?? json['diagnostic_test'];
+    DiagnosticTestModel testModel;
+    if (rawTest is Map<String, dynamic>) {
+      testModel = DiagnosticTestModel.fromJson(rawTest);
+    } else {
+      final testId = json['diagnostic_test_id']?.toString() ?? 't1';
+      testModel = DiagnosticTestModel(
+        id: testId,
+        name: json['test_name']?.toString() ?? 'Diagnostic Test',
+        category: 'General',
+        subtitle: 'Lab Diagnostic Report',
+        description: 'Comprehensive Clinical Laboratory Report',
+        price: 45.0,
+        sampleType: 'Blood',
+        reportsInHours: 24,
+        fastingRequired: false,
+        isPopular: true,
+        isPackage: false,
+        icon: Icons.science_outlined,
+      );
+    }
 
     return TestResultModel(
-      id: json['id'].toString(),
-      test: DiagnosticTestModel.fromJson(json['test']),
-      labName: json['lab_name'] ?? '',
-      testDate: json['test_date'] != null ? DateTime.parse(json['test_date']) : DateTime.now(),
-      reportDate: json['report_date'] != null ? DateTime.parse(json['report_date']) : DateTime.now(),
-      status: json['status'] ?? 'Results Available',
+      id: json['id']?.toString() ?? '',
+      test: testModel,
+      labName: json['lab_name']?.toString() ?? 'Tripoli Central Diagnostic Lab',
+      testDate: json['test_date'] != null
+          ? (DateTime.tryParse(json['test_date'].toString()) ?? DateTime.now())
+          : DateTime.now(),
+      reportDate: json['report_date'] != null
+          ? (DateTime.tryParse(json['report_date'].toString()) ?? DateTime.now())
+          : DateTime.now(),
+      status: json['status']?.toString() ?? 'Results Available',
       parameters: params,
+      pdfUrl: json['pdf_url']?.toString(),
     );
   }
 
@@ -129,6 +161,7 @@ class TestResultModel extends TestResult {
       'report_date': reportDate.toIso8601String().substring(0, 10),
       'status': status,
       'parameters': parameters.map((p) => (p as ResultParameterModel).toJson()).toList(),
+      'pdf_url': pdfUrl,
     };
   }
 }

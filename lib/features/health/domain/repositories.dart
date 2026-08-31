@@ -1,4 +1,4 @@
-import 'entities.dart';
+﻿import 'entities.dart';
 
 abstract class HealthRepository {
   // Results & Reports
@@ -22,6 +22,7 @@ abstract class HealthRepository {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   });
   Future<void> setPaymentMethodAsDefault(String id);
   Future<void> deletePaymentMethod(String id);

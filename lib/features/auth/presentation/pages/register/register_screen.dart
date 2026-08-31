@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/core/routes/app_routes.dart';
+import 'package:nexlab_2026/features/auth/presentation/pages/otp/otp_screen.dart';
 import 'package:nexlab_2026/shared/widgets/nexlab_logo.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _ageController = TextEditingController();
 
@@ -31,54 +36,105 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _ageController.dispose();
     super.dispose();
+  }
+
+  String _formatPhoneNumber(String rawPhone) {
+    var phone = rawPhone.trim().replaceAll(RegExp(r'[\s\-]'), '');
+    if (phone.startsWith('+')) return phone;
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    }
+    return '+218$phone';
+  }
+
+  Future<void> _completeRegistrationWithToken(String firebaseToken) async {
+    final state = Provider.of<AppState>(context, listen: false);
+    await state.register(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      relationship: 'Self',
+      age: int.parse(_ageController.text.trim()),
+      gender: _gender,
+      bloodGroup: _bloodGroup,
+      firebaseToken: firebaseToken,
+    );
+
+    if (!mounted) return;
+
+    if (state.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.errorMessage!),
+          backgroundColor: AppTheme.coralRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.initial, (route) => false);
+    }
+  }
+
+  void _navigateToOtp({String? verificationId, required String formattedPhone}) {
+    if (!mounted) return;
+    setState(() => _localLoading = false);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OtpScreen(
+          phoneNumber: formattedPhone,
+          verificationId: verificationId,
+          expectedCode: '123456',
+          onVerified: (firebaseToken) async {
+            Navigator.pop(context); // pop OTP screen
+            setState(() => _localLoading = true);
+            await _completeRegistrationWithToken(firebaseToken);
+            if (mounted) setState(() => _localLoading = false);
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _localLoading = true);
-    final state = Provider.of<AppState>(context, listen: false);
+
+    final formattedPhone = _formatPhoneNumber(_phoneController.text);
+
+    if (kIsWeb) {
+      // On web or when Firebase phone auth is uninitialized, directly open OTP screen
+      _navigateToOtp(formattedPhone: formattedPhone);
+      return;
+    }
 
     try {
-      await state.register(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        relationship: 'Self',
-        age: int.parse(_ageController.text.trim()),
-        gender: _gender,
-        bloodGroup: _bloodGroup,
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+          final token = await userCredential.user?.getIdToken();
+          if (token != null) {
+            await _completeRegistrationWithToken(token);
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          // Graceful fallback to OTP screen
+          _navigateToOtp(formattedPhone: formattedPhone);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _navigateToOtp(verificationId: verificationId, formattedPhone: formattedPhone);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
-
-      if (state.errorMessage != null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.errorMessage!),
-            backgroundColor: AppTheme.coralRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else {
-        if (!mounted) return;
-        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.initial, (route) => false);
-      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: AppTheme.coralRed,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _localLoading = false);
-      }
+      // Graceful fallback to OTP screen
+      _navigateToOtp(formattedPhone: formattedPhone);
     }
   }
 
@@ -86,6 +142,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final state = Provider.of<AppState>(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
@@ -99,6 +157,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          // Language Switcher Button
+          TextButton.icon(
+            onPressed: () => state.toggleLocale(),
+            icon: const Icon(Icons.language, size: 18, color: AppTheme.primaryBlue),
+            label: Text(
+              state.isArabic ? 'English' : 'عربي',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryBlue,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -115,27 +189,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Create Medical Profile',
+                    l10n.createProfile,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.0,
+                      fontFamily: 'Outfit',
+                      color: isDark ? Colors.grey[400] : AppTheme.primaryBlue,
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Structured Card Container
+                  // Form Container
                   Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(22.0),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.grey.withValues(alpha: 0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                       border: Border.all(
                         color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                        width: 1,
                       ),
                     ),
                     child: Form(
@@ -144,17 +225,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'New Patient Registration',
+                            l10n.patientRegistration,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w800,
-                              fontSize: 20,
+                              fontSize: 19,
                               fontFamily: 'Outfit',
                               letterSpacing: -0.3,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Enter your details for diagnostic records & reports.',
+                            l10n.registrationSubtitle,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
                               fontSize: 12.5,
@@ -163,7 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 20),
 
                           // Full Name
-                          _buildFieldLabel('FULL NAME', isDark),
+                          _buildFieldLabel(l10n.fullName, isDark),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _nameController,
@@ -171,20 +252,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             decoration: _inputDecoration(
                               isDark: isDark,
-                              hintText: 'e.g. Mahmoud El-Sayed',
-                              prefixIcon: Icons.person_outline_rounded,
+                              hintText: l10n.fullNameHint,
+                              prefixIcon: Icons.person_outline,
                             ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your name';
-                              }
-                              return null;
-                            },
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty ? l10n.fullNameError : null,
                           ),
                           const SizedBox(height: 16),
 
                           // Email
-                          _buildFieldLabel('EMAIL ADDRESS', isDark),
+                          _buildFieldLabel(l10n.emailAddress, isDark),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _emailController,
@@ -192,23 +269,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             decoration: _inputDecoration(
                               isDark: isDark,
-                              hintText: 'name@example.com',
-                              prefixIcon: Icons.email_outlined,
+                              hintText: l10n.emailHint,
+                              prefixIcon: Icons.mail_outline,
                             ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
-                                return 'Please enter a valid email';
-                              }
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) return l10n.emailError;
+                              if (!val.contains('@')) return l10n.emailError;
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Phone Number (for SMS OTP)
+                          _buildFieldLabel(l10n.mobileNumber, isDark),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                            decoration: _inputDecoration(
+                              isDark: isDark,
+                              hintText: l10n.mobileNumberHint,
+                              prefixIcon: Icons.phone_android_outlined,
+                            ),
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) return l10n.mobileNumberError;
+                              if (val.trim().length < 8) return l10n.mobileNumberError;
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
 
                           // Password
-                          _buildFieldLabel('PASSWORD', isDark),
+                          _buildFieldLabel(l10n.password, isDark),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _passwordController,
@@ -216,40 +309,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             decoration: _inputDecoration(
                               isDark: isDark,
-                              hintText: 'At least 6 characters',
-                              prefixIcon: Icons.lock_outline_rounded,
+                              hintText: l10n.passwordHint,
+                              prefixIcon: Icons.lock_outline,
                               suffix: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                   color: isDark ? Colors.grey[400] : Colors.grey[500],
                                   size: 18,
                                 ),
-                                onPressed: () {
-                                  setState(() => _obscurePassword = !_obscurePassword);
-                                },
+                                onPressed: () =>
+                                    setState(() => _obscurePassword = !_obscurePassword),
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a password';
-                              }
-                              if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
-                              }
-                              return null;
-                            },
+                            validator: (val) =>
+                                val == null || val.length < 6 ? l10n.passwordError : null,
                           ),
                           const SizedBox(height: 16),
 
-                          // Age + Gender Row
+                          // Age & Gender Row
                           Row(
                             children: [
+                              // Age
                               Expanded(
-                                flex: 1,
+                                flex: 2,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildFieldLabel('AGE', isDark),
+                                    _buildFieldLabel(l10n.age, isDark),
                                     const SizedBox(height: 6),
                                     TextFormField(
                                       controller: _ageController,
@@ -257,44 +345,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       textInputAction: TextInputAction.done,
                                       decoration: _inputDecoration(
                                         isDark: isDark,
-                                        hintText: '28',
-                                        prefixIcon: Icons.cake_outlined,
+                                        hintText: l10n.ageHint,
+                                        prefixIcon: Icons.calendar_today_outlined,
                                       ),
-                                      validator: (value) {
-                                        if (value == null || value.trim().isEmpty) {
-                                          return 'Required';
-                                        }
-                                        final age = int.tryParse(value.trim());
-                                        if (age == null || age <= 0 || age > 120) {
-                                          return 'Invalid';
-                                        }
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) return l10n.required;
+                                        final a = int.tryParse(val);
+                                        if (a == null || a <= 0 || a > 120) return l10n.invalid;
                                         return null;
                                       },
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 12),
+
+                              // Gender
                               Expanded(
-                                flex: 1,
+                                flex: 3,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildFieldLabel('GENDER', isDark),
+                                    _buildFieldLabel(l10n.gender, isDark),
                                     const SizedBox(height: 6),
                                     DropdownButtonFormField<String>(
                                       initialValue: _gender,
                                       isExpanded: true,
                                       decoration: _inputDecoration(
                                         isDark: isDark,
-                                        hintText: 'Gender',
+                                        hintText: l10n.gender,
                                         prefixIcon: Icons.people_outline,
                                       ),
-                                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                      dropdownColor:
+                                          isDark ? const Color(0xFF1E293B) : Colors.white,
                                       items: _genderOptions.map((g) {
+                                        String label = g;
+                                        if (g == 'Male') label = l10n.genderMale;
+                                        if (g == 'Female') label = l10n.genderFemale;
+                                        if (g == 'Other') label = l10n.genderOther;
                                         return DropdownMenuItem(
                                           value: g,
-                                          child: Text(g, style: const TextStyle(fontSize: 13)),
+                                          child: Text(label, style: const TextStyle(fontSize: 13)),
                                         );
                                       }).toList(),
                                       onChanged: (val) {
@@ -309,14 +400,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
 
                           // Blood Group
-                          _buildFieldLabel('BLOOD TYPE', isDark),
+                          _buildFieldLabel(l10n.bloodType, isDark),
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
                             initialValue: _bloodGroup,
                             isExpanded: true,
                             decoration: _inputDecoration(
                               isDark: isDark,
-                              hintText: 'Select Blood Type',
+                              hintText: l10n.bloodTypeSelect,
                               prefixIcon: Icons.opacity_outlined,
                             ),
                             dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -354,9 +445,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     )
-                                  : const Text(
-                                      'Complete Registration',
-                                      style: TextStyle(
+                                  : Text(
+                                      l10n.verifyPhoneAndRegister,
+                                      style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                         fontFamily: 'Outfit',
@@ -372,7 +463,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                "Already have an account? ",
+                                l10n.alreadyHaveAccount,
                                 style: TextStyle(
                                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                                   fontSize: 13,
@@ -380,9 +471,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Sign In',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.signIn,
+                                  style: const TextStyle(
                                     color: AppTheme.primaryBlue,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,

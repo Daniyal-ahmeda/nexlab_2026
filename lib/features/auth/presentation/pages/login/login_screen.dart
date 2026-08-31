@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:nexlab_2026/core/l10n/app_localizations.dart';
 import 'package:nexlab_2026/core/providers/app_state.dart';
 import 'package:nexlab_2026/core/theme/app_theme.dart';
 import 'package:nexlab_2026/core/routes/app_routes.dart';
@@ -71,15 +72,37 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final state = Provider.of<AppState>(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          // Language Switcher Button
+          TextButton.icon(
+            onPressed: () => state.toggleLocale(),
+            icon: const Icon(Icons.language, size: 18, color: AppTheme.primaryBlue),
+            label: Text(
+              state.isArabic ? 'English' : 'عربي',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryBlue,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -90,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Libyan Diagnostic Portal',
+                    l10n.appSubtitle,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -98,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 32),
 
                   // Structured Card Container
                   Container(
@@ -119,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Sign In',
+                            l10n.signIn,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                               fontSize: 22,
@@ -129,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Access your diagnostic reports & bookings.',
+                            l10n.loginSubtitle,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
                               fontSize: 13,
@@ -138,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 24),
 
                           // Email Field
-                          _buildFieldLabel(theme, 'EMAIL ADDRESS', isDark),
+                          _buildFieldLabel(l10n.emailAddress, isDark),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _emailController,
@@ -147,15 +170,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: _inputDecoration(
                               theme: theme,
                               isDark: isDark,
-                              hintText: 'name@example.com',
+                              hintText: l10n.emailHint,
                               prefixIcon: Icons.email_outlined,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your email';
+                                return l10n.emailError;
                               }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
-                                return 'Please enter a valid email';
+                              if (!value.contains('@')) {
+                                return l10n.emailError;
                               }
                               return null;
                             },
@@ -163,31 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 18),
 
                           // Password Field
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(child: _buildFieldLabel(theme, 'PASSWORD', isDark)),
-                              GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Demo account active. Enter any valid password.'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  'Forgot?',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.primaryBlue,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: 'Outfit',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildFieldLabel(l10n.password, isDark),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _passwordController,
@@ -197,11 +196,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: _inputDecoration(
                               theme: theme,
                               isDark: isDark,
-                              hintText: '••••••••',
+                              hintText: l10n.passwordHint,
                               prefixIcon: Icons.lock_outline_rounded,
                               suffix: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                   color: isDark ? Colors.grey[400] : Colors.grey[500],
                                   size: 18,
                                 ),
@@ -212,10 +213,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return l10n.passwordError;
                               }
                               if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
+                                return l10n.passwordError;
                               }
                               return null;
                             },
@@ -244,9 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
+                                  : Text(
+                                      l10n.signIn,
+                                      style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                         fontFamily: 'Outfit',
@@ -262,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                "Don't have an account? ",
+                                l10n.dontHaveAccount,
                                 style: TextStyle(
                                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                                   fontSize: 13,
@@ -272,9 +273,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onTap: () {
                                   Navigator.pushNamed(context, AppRoutes.register);
                                 },
-                                child: const Text(
-                                  'Sign Up',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.signUp,
+                                  style: const TextStyle(
                                     color: AppTheme.primaryBlue,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
@@ -297,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildFieldLabel(ThemeData theme, String label, bool isDark) {
+  Widget _buildFieldLabel(String label, bool isDark) {
     return Text(
       label,
       style: TextStyle(

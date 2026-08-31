@@ -1,4 +1,4 @@
-import 'entities.dart';
+﻿import 'entities.dart';
 import 'repositories.dart';
 
 class GetResultsUseCase {
@@ -75,11 +75,13 @@ class AddPaymentMethodUseCase {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   }) {
     return repository.addPaymentMethod(
       type: type,
       number: number,
       expiry: expiry,
+      firebaseToken: firebaseToken,
     );
   }
 }

@@ -58,6 +58,7 @@ class TestResult {
   final DateTime reportDate;
   final String status;
   final List<ResultParameter> parameters;
+  final String? pdfUrl;
 
   const TestResult({
     required this.id,
@@ -67,5 +68,6 @@ class TestResult {
     required this.reportDate,
     required this.status,
     required this.parameters,
+    this.pdfUrl,
   });
 }

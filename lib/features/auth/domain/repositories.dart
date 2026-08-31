@@ -1,4 +1,4 @@
-import 'entities.dart';
+﻿import 'entities.dart';
 
 abstract class AuthRepository {
   Future<User> login(String email, String password);
@@ -10,6 +10,7 @@ abstract class AuthRepository {
     required int age,
     required String gender,
     required String bloodGroup,
+    required String firebaseToken,
   });
   Future<void> logout();
   Future<User?> getCurrentUser();

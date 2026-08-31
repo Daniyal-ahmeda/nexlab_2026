@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../constants/api_constants.dart';
 import '../errors/exceptions.dart';
 
 class ApiClient {
@@ -8,9 +9,10 @@ class ApiClient {
   String? _token;
 
   ApiClient({
-    this.baseUrl = 'http://192.168.0.109:8000/api',
+    String? baseUrl,
     http.Client? httpClient,
-  }) : client = httpClient ?? http.Client();
+  })  : baseUrl = baseUrl ?? ApiConstants.baseUrl,
+        client = httpClient ?? http.Client();
 
   void setToken(String? token) {
     _token = token;

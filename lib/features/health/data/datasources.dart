@@ -1,4 +1,4 @@
-import '../../../core/network/api_client.dart';
+﻿import '../../../core/network/api_client.dart';
 import '../../../core/network/mock_database.dart';
 import 'models.dart';
 
@@ -21,6 +21,7 @@ abstract class HealthRemoteDataSource {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   });
   Future<void> setPaymentMethodAsDefault(String id);
   Future<void> deletePaymentMethod(String id);
@@ -105,12 +106,14 @@ class HealthRemoteDataSourceImpl implements HealthRemoteDataSource {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   }) async {
     final response = await apiClient.post('/payment-methods', body: {
       'type': type,
       'number': number,
       'expiry': expiry,
       'is_default': true,
+      'firebase_token': firebaseToken,
     });
     final data = (response is Map<String, dynamic> && response.containsKey('data')) ? response['data'] : response;
     return PaymentMethodModel.fromJson(data);
@@ -150,6 +153,7 @@ abstract class HealthMockDataSource {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   });
   Future<void> setPaymentMethodAsDefault(String id);
   Future<void> deletePaymentMethod(String id);
@@ -217,6 +221,7 @@ class HealthMockDataSourceImpl implements HealthMockDataSource {
     required String type,
     required String number,
     required String expiry,
+    required String firebaseToken,
   }) async {
     await _delay();
     final newMethod = PaymentMethodModel(
