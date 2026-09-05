@@ -1,11 +1,16 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConstants {
+  // Cloudflare Tunnel URL
+  static const String cloudflareTunnelUrl = 'https://coupled-larger-desert-absent.trycloudflare.com/api';
+
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:8000/api';
-    }
-    return 'http://192.168.0.101:8000/api';
+    // Cloudflare Tunnel allows physical devices and emulators to connect from anywhere
+    return cloudflareTunnelUrl;
+
+    // Uncomment below if switching back to local network:
+    // if (kIsWeb) {
+    //   return 'http://localhost:8000/api';
+    // }
+    // return 'http://192.168.0.106:8000/api';
   }
   static const String login = '/login';
   static const String register = '/register';
